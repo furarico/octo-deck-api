@@ -1,0 +1,51 @@
+openapi: 3.1.0
+info:
+  title: Octo Deck API
+  version: 1.0.0
+tags: []
+paths:
+  /octo-deck:
+    get:
+      operationId: getCards
+      summary: カード一覧取得
+      description: Octo Deck API
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cards:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Card'
+                required:
+                  - cards
+components:
+  schemas:
+    Card:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+servers:
+  - url: http://localhost:8080
+    description: Local
+    variables: {}
+  - url: https://dev.api.octo-deck.furari.co
+    description: Development
+    variables: {}
+  - url: https://stg.api.octo-deck.furari.co
+    description: Staging
+    variables: {}
+  - url: https://api.octo-deck.furari.co
+    description: Production
+    variables: {}
