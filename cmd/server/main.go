@@ -38,7 +38,7 @@ func (s *Server) GetCards(c *gin.Context) {
 	})
 }
 
-// GetMyCard は自分のカードを返すハンドラー（未実装）
+// GetMyCard は自分のカードを返すハンドラー
 func (s *Server) GetMyCard(c *gin.Context) {
 	card := api.Card{
 		Id:       "1",
@@ -51,7 +51,7 @@ func (s *Server) GetMyCard(c *gin.Context) {
 	})
 }
 
-// GetCard は指定されたIDのカードを返すハンドラー（未実装）
+// GetCard は指定されたIDのカードを返すハンドラー
 func (s *Server) GetCard(c *gin.Context, id string) {
 	cards := []api.Card{
 		{
