@@ -4,20 +4,32 @@
 package api
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
+	"github.com/oapi-codegen/runtime"
 )
 
 // Card defines model for Card.
 type Card struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	FullName string `json:"fullName"`
+	IconUrl  string `json:"iconUrl"`
+	Id       string `json:"id"`
+	UserName string `json:"userName"`
 }
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// カード一覧取得
-	// (GET /octo-deck)
+	// (GET /cards)
 	GetCards(c *gin.Context)
+	// 自分のカード取得
+	// (GET /cards/me)
+	GetMyCard(c *gin.Context)
+	// カード取得
+	// (GET /cards/{id})
+	GetCard(c *gin.Context, id string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -40,6 +52,43 @@ func (siw *ServerInterfaceWrapper) GetCards(c *gin.Context) {
 	}
 
 	siw.Handler.GetCards(c)
+}
+
+// GetMyCard operation middleware
+func (siw *ServerInterfaceWrapper) GetMyCard(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMyCard(c)
+}
+
+// GetCard operation middleware
+func (siw *ServerInterfaceWrapper) GetCard(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCard(c, id)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -69,5 +118,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
-	router.GET(options.BaseURL+"/octo-deck", wrapper.GetCards)
+	router.GET(options.BaseURL+"/cards", wrapper.GetCards)
+	router.GET(options.BaseURL+"/cards/me", wrapper.GetMyCard)
+	router.GET(options.BaseURL+"/cards/:id", wrapper.GetCard)
 }

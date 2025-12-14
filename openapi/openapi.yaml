@@ -4,14 +4,14 @@ info:
   version: 1.0.0
 tags: []
 paths:
-  /octo-deck:
+  /cards:
     get:
       operationId: getCards
       summary: カード一覧取得
       description: Octo Deck API
       parameters: []
       responses:
-        '200':
+        "200":
           description: The request has succeeded.
           content:
             application/json:
@@ -21,20 +21,65 @@ paths:
                   cards:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Card'
+                      $ref: "#/components/schemas/Card"
                 required:
                   - cards
+  /cards/me:
+    get:
+      operationId: getMyCard
+      summary: 自分のカード取得
+      parameters: []
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  card:
+                    $ref: "#/components/schemas/Card"
+                required:
+                  - card
+  /cards/{id}:
+    get:
+      operationId: getCard
+      summary: カード取得
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  card:
+                    $ref: "#/components/schemas/Card"
+                required:
+                  - card
 components:
   schemas:
     Card:
       type: object
       required:
         - id
-        - name
+        - userName
+        - fullName
+        - iconUrl
       properties:
         id:
           type: string
-        name:
+        userName:
+          type: string
+        fullName:
+          type: string
+        iconUrl:
           type: string
 servers:
   - url: http://localhost:8080
