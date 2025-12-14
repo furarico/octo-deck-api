@@ -23,7 +23,7 @@ erDiagram
         datetime collected_at
     }
 
-    USERS ||--o{ CARDS : creates
+    USERS ||--|| CARDS : creates
     USERS ||--o{ COLLECTED_CARDS : holds
     CARDS ||--o{ COLLECTED_CARDS : is_collected_in
 ```
