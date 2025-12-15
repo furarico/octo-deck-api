@@ -1,93 +1,37 @@
 package main
 
 import (
-	"net/http"
+	"log"
 
 	api "github.com/furarico/octo-deck-api/generated"
+	"github.com/furarico/octo-deck-api/internal/handler"
+	"github.com/furarico/octo-deck-api/internal/repository"
+	"github.com/furarico/octo-deck-api/internal/service"
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
+	middleware "github.com/oapi-codegen/gin-middleware"
 )
 
-type Server struct{}
-
-// GetCards はカード一覧を返すハンドラー
-func (s *Server) GetCards(c *gin.Context) {
-	// モックデータを返す
-	cards := []api.Card{
-		{
-			Id:       "1",
-			UserName: "taro_yamada",
-			FullName: "山田太郎",
-			IconUrl:  "https://example.com/icons/taro.png",
-		},
-		{
-			Id:       "2",
-			UserName: "hanako_tanaka",
-			FullName: "田中花子",
-			IconUrl:  "https://example.com/icons/hanako.png",
-		},
-		{
-			Id:       "3",
-			UserName: "jiro_sato",
-			FullName: "佐藤次郎",
-			IconUrl:  "https://example.com/icons/jiro.png",
-		},
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"cards": cards,
-	})
-}
-
-// GetMyCard は自分のカードを返すハンドラー
-func (s *Server) GetMyCard(c *gin.Context) {
-	card := api.Card{
-		Id:       "1",
-		UserName: "taro_yamada",
-		FullName: "山田太郎",
-		IconUrl:  "https://example.com/icons/taro.png",
-	}
-	c.JSON(http.StatusNotImplemented, gin.H{
-		"card": card,
-	})
-}
-
-// GetCard は指定されたIDのカードを返すハンドラー
-func (s *Server) GetCard(c *gin.Context, id string) {
-	cards := []api.Card{
-		{
-			Id:       "1",
-			UserName: "taro_yamada",
-			FullName: "山田太郎",
-			IconUrl:  "https://example.com/icons/taro.png",
-		},
-		{
-			Id:       "2",
-			UserName: "hanako_tanaka",
-			FullName: "田中花子",
-			IconUrl:  "https://example.com/icons/hanako.png",
-		},
-		{
-			Id:       "3",
-			UserName: "jiro_sato",
-			FullName: "佐藤次郎",
-			IconUrl:  "https://example.com/icons/jiro.png",
-		},
-	}
-
-	for _, card := range cards {
-		if card.Id == id {
-			c.JSON(http.StatusOK, gin.H{
-				"card": card,
-			})
-		}
-	}
-}
-
 func main() {
-	r := gin.Default()
+	spec, err := openapi3.NewLoader().LoadFromFile("openapi/openapi.yaml")
+	if err != nil {
+		log.Fatalf("Failed to load OpenAPI spec: %v", err)
+	}
+	spec.Servers = nil
 
-	server := &Server{}
-	api.RegisterHandlers(r, server)
+	router := gin.Default()
 
-	r.Run(":8080")
+	router.Use(middleware.OapiRequestValidator(spec))
+
+	cardRepository := repository.NewMockCardRepository()
+	cardService := service.NewCardService(cardRepository)
+	cardHandler := handler.NewHandler(cardService)
+
+	api.RegisterHandlers(router, cardHandler)
+
+	addr := ":8080"
+	log.Printf("Server starting on %s", addr)
+	if err := router.Run(addr); err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
 }
