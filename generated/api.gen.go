@@ -13,10 +13,20 @@ import (
 
 // Card defines model for Card.
 type Card struct {
-	FullName string `json:"fullName"`
-	IconUrl  string `json:"iconUrl"`
-	Id       string `json:"id"`
-	UserName string `json:"userName"`
+	FullName  string    `json:"fullName"`
+	IconUrl   string    `json:"iconUrl"`
+	Id        string    `json:"id"`
+	Identicon Identicon `json:"identicon"`
+	UserName  string    `json:"userName"`
+}
+
+// Identicon defines model for Identicon.
+type Identicon struct {
+	// Blocks 5x5の二次元配列。trueがブロック
+	Blocks [][]bool `json:"blocks"`
+
+	// Color カラーコード 例: #RRGGBB
+	Color string `json:"color"`
 }
 
 // ServerInterface represents all server handlers.
