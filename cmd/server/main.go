@@ -29,6 +29,10 @@ func main() {
 		}
 	}()
 
+	if err := database.AutoMigrate(db); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
+	}
+
 	spec, err := openapi3.NewLoader().LoadFromFile("openapi/openapi.yaml")
 	if err != nil {
 		log.Fatalf("Failed to load OpenAPI spec: %v", err)
