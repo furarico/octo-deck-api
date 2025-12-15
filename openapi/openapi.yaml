@@ -11,7 +11,7 @@ paths:
       description: Octo Deck API
       parameters: []
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -21,7 +21,7 @@ paths:
                   cards:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Card"
+                      $ref: '#/components/schemas/Card'
                 required:
                   - cards
   /cards/me:
@@ -30,7 +30,7 @@ paths:
       summary: 自分のカード取得
       parameters: []
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -38,7 +38,7 @@ paths:
                 type: object
                 properties:
                   card:
-                    $ref: "#/components/schemas/Card"
+                    $ref: '#/components/schemas/Card'
                 required:
                   - card
   /cards/{id}:
@@ -52,7 +52,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -60,7 +60,7 @@ paths:
                 type: object
                 properties:
                   card:
-                    $ref: "#/components/schemas/Card"
+                    $ref: '#/components/schemas/Card'
                 required:
                   - card
 components:
@@ -72,6 +72,7 @@ components:
         - userName
         - fullName
         - iconUrl
+        - identicon
       properties:
         id:
           type: string
@@ -81,6 +82,24 @@ components:
           type: string
         iconUrl:
           type: string
+        identicon:
+          $ref: '#/components/schemas/Identicon'
+    Identicon:
+      type: object
+      required:
+        - color
+        - blocks
+      properties:
+        color:
+          type: string
+          description: 'カラーコード 例: #RRGGBB'
+        blocks:
+          type: array
+          items:
+            type: array
+            items:
+              type: boolean
+          description: 5x5の二次元配列。trueがブロック
 servers:
   - url: http://localhost:8080
     description: Local
