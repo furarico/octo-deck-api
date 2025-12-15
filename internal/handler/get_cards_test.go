@@ -27,7 +27,7 @@ func TestGetCards(t *testing.T) {
 			name: "正常にカード一覧を取得できる",
 			setupMock: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllFunc: func() ([]domain.CardWithOwner, error) {
+					FindAllFunc: func(githubID string) ([]domain.CardWithOwner, error) {
 						return []domain.CardWithOwner{
 							{
 								Card: &domain.Card{ID: domain.NewCardID()},
@@ -78,7 +78,7 @@ func TestGetCards(t *testing.T) {
 			name: "空の結果を正常に返せる",
 			setupMock: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllFunc: func() ([]domain.CardWithOwner, error) {
+					FindAllFunc: func(githubID string) ([]domain.CardWithOwner, error) {
 						return []domain.CardWithOwner{}, nil
 					},
 				}

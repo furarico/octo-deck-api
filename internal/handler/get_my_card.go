@@ -8,7 +8,10 @@ import (
 
 // (GET /cards/me)
 func (h *Handler) GetMyCard(c *gin.Context) {
-	card, err := h.cardService.GetMyCard()
+	// TODO: 認証情報からGitHubIDを取得する
+	githubID := c.GetString("github_id")
+
+	card, err := h.cardService.GetMyCard(githubID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),

@@ -3,19 +3,19 @@ package repository
 import "github.com/furarico/octo-deck-api/internal/domain"
 
 type MockCardRepository struct {
-	FindAllFunc    func() ([]domain.CardWithOwner, error)
+	FindAllFunc    func(githubID string) ([]domain.CardWithOwner, error)
 	FindByIDFunc   func(id string) (*domain.CardWithOwner, error)
-	FindMyCardFunc func() (*domain.CardWithOwner, error)
+	FindMyCardFunc func(githubID string) (*domain.CardWithOwner, error)
 }
 
 func NewMockCardRepository() *MockCardRepository {
 	return &MockCardRepository{}
 }
 
-// FindAll は全てのカードを取得する
-func (r *MockCardRepository) FindAll() ([]domain.CardWithOwner, error) {
+// FindAll は自分が集めたカードを全て取得する
+func (r *MockCardRepository) FindAll(githubID string) ([]domain.CardWithOwner, error) {
 	if r.FindAllFunc != nil {
-		return r.FindAllFunc()
+		return r.FindAllFunc(githubID)
 	}
 
 	return []domain.CardWithOwner{}, nil
@@ -30,9 +30,9 @@ func (r *MockCardRepository) FindByID(id string) (*domain.CardWithOwner, error) 
 }
 
 // FindMyCard は自分のカードを取得する
-func (r *MockCardRepository) FindMyCard() (*domain.CardWithOwner, error) {
+func (r *MockCardRepository) FindMyCard(githubID string) (*domain.CardWithOwner, error) {
 	if r.FindMyCardFunc != nil {
-		return r.FindMyCardFunc()
+		return r.FindMyCardFunc(githubID)
 	}
-	return &domain.CardWithOwner{}, nil
+	return nil, nil
 }
