@@ -3,27 +3,35 @@
 ```mermaid
 erDiagram
     USERS {
-        int id PK
+        string id PK
         string user_name
         string full_name
+        string github_id
         string icon_url
     }
 
     CARDS {
-        int id PK
-        int owner_user_id FK
-        string color
+        string id PK
+        string user_id FK
         datetime created_at
     }
 
     COLLECTED_CARDS {
-        int id PK
-        int holder_user_id FK
-        int card_id FK
+        string id PK
+        string user_id FK
+        string card_id FK
         datetime collected_at
+    }
+
+    IDENTICONS {
+        string id PK
+        string user_id FK
+        string color
+        json blocks_data
     }
 
     USERS ||--|| CARDS : creates
     USERS ||--o{ COLLECTED_CARDS : holds
     CARDS ||--o{ COLLECTED_CARDS : is_collected_in
+    USERS ||--|| IDENTICONS : has
 ```
