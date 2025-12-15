@@ -2,11 +2,13 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	api "github.com/furarico/octo-deck-api/generated"
+	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/repository"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -25,7 +27,25 @@ func TestGetCard(t *testing.T) {
 		{
 			name: "正常に特定のカードを取得できる",
 			setupMock: func() *repository.MockCardRepository {
-				return repository.NewMockCardRepository()
+				return &repository.MockCardRepository{
+					FindByIDFunc: func(id string) (*domain.CardWithOwner, error) {
+						return &domain.CardWithOwner{
+							Card: &domain.Card{
+								ID: domain.NewCardID(),
+							},
+							Owner: &domain.User{
+								UserName: "john_doe",
+								FullName: "John Doe",
+								GitHubID: "john_doe",
+								IconURL:  "https://example.com/icon.png",
+								Identicon: domain.Identicon{
+									Color:  domain.Color("#000000"),
+									Blocks: domain.Blocks{},
+								},
+							},
+						}, nil
+					},
+				}
 			},
 			wantCode: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
@@ -37,16 +57,23 @@ func TestGetCard(t *testing.T) {
 			},
 		},
 		{
-			name: "空の結果を正常に返せる",
+			name: "カードが見つからない場合はエラーを返す",
 			setupMock: func() *repository.MockCardRepository {
-				return repository.NewMockCardRepository()
+				return &repository.MockCardRepository{
+					FindByIDFunc: func(id string) (*domain.CardWithOwner, error) {
+						return nil, fmt.Errorf("card not found: id=%s", id)
+					},
+				}
 			},
-			wantCode: http.StatusOK,
+			wantCode: http.StatusNotFound,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var response api.Card
+				var response map[string]string
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				if err != nil {
 					t.Errorf("JSONパースに失敗しました: %v", err)
+				}
+				if _, ok := response["error"]; !ok {
+					t.Errorf("エラーメッセージがありません")
 				}
 			},
 		},

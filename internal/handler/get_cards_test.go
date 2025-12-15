@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	api "github.com/furarico/octo-deck-api/generated"
+	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/repository"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -25,42 +26,74 @@ func TestGetCards(t *testing.T) {
 		{
 			name: "正常にカード一覧を取得できる",
 			setupMock: func() *repository.MockCardRepository {
-				return repository.NewMockCardRepository()
+				return &repository.MockCardRepository{
+					FindAllFunc: func() ([]domain.CardWithOwner, error) {
+						return []domain.CardWithOwner{
+							{
+								Card: &domain.Card{ID: domain.NewCardID()},
+								Owner: &domain.User{
+									UserName:  "user1",
+									FullName:  "User One",
+									IconURL:   "https://example.com/icon1.png",
+									Identicon: domain.Identicon{Color: "#111111", Blocks: domain.Blocks{}},
+								},
+							},
+							{
+								Card: &domain.Card{ID: domain.NewCardID()},
+								Owner: &domain.User{
+									UserName:  "user2",
+									FullName:  "User Two",
+									IconURL:   "https://example.com/icon2.png",
+									Identicon: domain.Identicon{Color: "#222222", Blocks: domain.Blocks{}},
+								},
+							},
+							{
+								Card: &domain.Card{ID: domain.NewCardID()},
+								Owner: &domain.User{
+									UserName:  "user3",
+									FullName:  "User Three",
+									IconURL:   "https://example.com/icon3.png",
+									Identicon: domain.Identicon{Color: "#333333", Blocks: domain.Blocks{}},
+								},
+							},
+						}, nil
+					},
+				}
 			},
 			wantCode: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var response struct {
-					Cards []api.Card `json:"cards"`
-				}
+				var response []api.Card
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				if err != nil {
 					t.Errorf("JSONパースに失敗しました: %v", err)
 				}
 
 				// カード数をチェック
-				if len(response.Cards) != 3 {
-					t.Errorf("カード数が違う: 期待=3, 実際=%d", len(response.Cards))
+				if len(response) != 3 {
+					t.Errorf("カード数が違う: 期待=3, 実際=%d", len(response))
 				}
 			},
 		},
 		{
 			name: "空の結果を正常に返せる",
 			setupMock: func() *repository.MockCardRepository {
-				return repository.NewMockCardRepository()
+				return &repository.MockCardRepository{
+					FindAllFunc: func() ([]domain.CardWithOwner, error) {
+						return []domain.CardWithOwner{}, nil
+					},
+				}
 			},
 			wantCode: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var response struct {
-					Cards []api.Card `json:"cards"`
-				}
+				var response []api.Card
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				if err != nil {
 					t.Errorf("JSONパースに失敗しました: %v", err)
 				}
 
 				// カード数をチェック
-				if len(response.Cards) != 3 {
-					t.Errorf("カード数が違う: 期待=3, 実際=%d", len(response.Cards))
+				if len(response) != 0 {
+					t.Errorf("カード数が違う: 期待=0, 実際=%d", len(response))
 				}
 			},
 		},

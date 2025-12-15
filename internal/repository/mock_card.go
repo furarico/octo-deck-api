@@ -2,8 +2,11 @@ package repository
 
 import "github.com/furarico/octo-deck-api/internal/domain"
 
-// MockCardRepository は service.CardRepository インターフェースを実装する
-type MockCardRepository struct{}
+type MockCardRepository struct {
+	FindAllFunc    func() ([]domain.CardWithOwner, error)
+	FindByIDFunc   func(id string) (*domain.CardWithOwner, error)
+	FindMyCardFunc func() (*domain.CardWithOwner, error)
+}
 
 func NewMockCardRepository() *MockCardRepository {
 	return &MockCardRepository{}
