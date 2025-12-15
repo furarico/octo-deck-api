@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +17,10 @@ func (h *Handler) GetCards(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"cards": cards,
-	})
+	cardsAPI := make([]api.Card, len(cards))
+	for i, card := range cards {
+		cardsAPI[i] = convertCardToAPI(card)
+	}
+
+	c.JSON(http.StatusOK, cardsAPI)
 }
