@@ -3,19 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
-
-type Handler struct {
-	cardService *service.CardService
-}
-
-func NewHandler(cardService *service.CardService) *Handler {
-	return &Handler{
-		cardService: cardService,
-	}
-}
 
 // (GET /cards)
 func (h *Handler) GetCards(c *gin.Context) {
