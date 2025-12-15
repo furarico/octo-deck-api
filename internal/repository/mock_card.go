@@ -10,19 +10,19 @@ func NewMockCardRepository() *MockCardRepository {
 }
 
 // FindAll は全てのカードを取得する
-func (r *MockCardRepository) FindAll() ([]domain.Card, error) {
+func (r *MockCardRepository) FindAll() ([]domain.CardWithOwner, error) {
 
-	return []domain.Card{}, nil
+	return []domain.CardWithOwner{}, nil
 }
 
 // FindByID は指定されたIDのカードを取得する
-func (r *MockCardRepository) FindByID(id string) (*domain.Card, error) {
+func (r *MockCardRepository) FindByID(id string) (*domain.CardWithOwner, error) {
 
-	return &domain.Card{}, nil
+	return &domain.CardWithOwner{}, nil
 }
 
 // FindMyCard は自分のカードを取得する
-func (r *MockCardRepository) FindMyCard() (*domain.Card, error) {
+func (r *MockCardRepository) FindMyCard() (*domain.CardWithOwner, error) {
 
-	return &domain.Card{}, nil
+	return &domain.CardWithOwner{}, nil
 }

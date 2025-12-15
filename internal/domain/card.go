@@ -6,10 +6,15 @@ import (
 
 type CardID uuid.UUID
 
+func (c CardID) String() {
+	panic("unimplemented")
+}
+
 func NewCardID() CardID {
 	return CardID(uuid.New())
 }
 
+// Card はカードのエンティティ（DBに保存される単位）
 type Card struct {
 	ID      CardID
 	OwnerID UserID
@@ -20,4 +25,10 @@ func NewCard(ownerID UserID) *Card {
 		ID:      NewCardID(),
 		OwnerID: ownerID,
 	}
+}
+
+// CardWithOwner はカードと所有者情報を組み合わせた集約
+type CardWithOwner struct {
+	Card  *Card
+	Owner *User
 }
