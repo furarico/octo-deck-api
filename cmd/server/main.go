@@ -9,15 +9,10 @@ import (
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	middleware "github.com/oapi-codegen/gin-middleware"
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Printf("Warning: .env file not found: %v", err)
-	}
-
 	spec, err := openapi3.NewLoader().LoadFromFile("openapi/openapi.yaml")
 	if err != nil {
 		log.Fatalf("Failed to load OpenAPI spec: %v", err)
