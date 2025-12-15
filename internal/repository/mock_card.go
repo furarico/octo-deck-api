@@ -14,18 +14,25 @@ func NewMockCardRepository() *MockCardRepository {
 
 // FindAll は全てのカードを取得する
 func (r *MockCardRepository) FindAll() ([]domain.CardWithOwner, error) {
+	if r.FindAllFunc != nil {
+		return r.FindAllFunc()
+	}
 
 	return []domain.CardWithOwner{}, nil
 }
 
 // FindByID は指定されたIDのカードを取得する
 func (r *MockCardRepository) FindByID(id string) (*domain.CardWithOwner, error) {
-
+	if r.FindByIDFunc != nil {
+		return r.FindByIDFunc(id)
+	}
 	return &domain.CardWithOwner{}, nil
 }
 
 // FindMyCard は自分のカードを取得する
 func (r *MockCardRepository) FindMyCard() (*domain.CardWithOwner, error) {
-
+	if r.FindMyCardFunc != nil {
+		return r.FindMyCardFunc()
+	}
 	return &domain.CardWithOwner{}, nil
 }
