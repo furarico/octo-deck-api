@@ -4,6 +4,7 @@ import (
 	api "github.com/furarico/octo-deck-api/generated"
 )
 
+// MockCardRepository は service.CardRepository インターフェースを実装する
 type MockCardRepository struct{}
 
 func NewMockCardRepository() *MockCardRepository {

@@ -4,14 +4,20 @@ import (
 	"fmt"
 
 	api "github.com/furarico/octo-deck-api/generated"
-	"github.com/furarico/octo-deck-api/internal/repository"
 )
 
-type CardService struct {
-	cardRepo repository.CardRepository
+// CardRepository はServiceが必要とするRepositoryのインターフェース
+type CardRepository interface {
+	FindAll() ([]api.Card, error)
+	FindByID(id string) (*api.Card, error)
+	FindMyCard() (*api.Card, error)
 }
 
-func NewCardService(cardRepo repository.CardRepository) *CardService {
+type CardService struct {
+	cardRepo CardRepository
+}
+
+func NewCardService(cardRepo CardRepository) *CardService {
 	return &CardService{
 		cardRepo: cardRepo,
 	}
