@@ -3,6 +3,7 @@ package database
 import (
 	"time"
 
+	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -23,4 +24,15 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 		u.ID = uuid.New()
 	}
 	return nil
+}
+
+func (u *User) ToDomain() *domain.User {
+	return &domain.User{
+		ID:        domain.UserID(u.ID),
+		UserName:  u.UserName,
+		FullName:  u.FullName,
+		GitHubID:  u.GithubID,
+		IconURL:   u.IconURL,
+		Identicon: *u.Identicon.ToDomain(),
+	}
 }

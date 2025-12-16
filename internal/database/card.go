@@ -3,6 +3,7 @@ package database
 import (
 	"time"
 
+	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -20,4 +21,11 @@ func (c *Card) BeforeCreate(tx *gorm.DB) error {
 		c.ID = uuid.New()
 	}
 	return nil
+}
+
+func (c *Card) ToDomain() *domain.Card {
+	return &domain.Card{
+		ID:      domain.CardID(c.ID),
+		OwnerID: domain.UserID(c.UserID),
+	}
 }
