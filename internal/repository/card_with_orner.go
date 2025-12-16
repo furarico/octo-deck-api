@@ -19,13 +19,13 @@ func NewCardRepository(db *gorm.DB) *cardRepository {
 
 // FindAll はGitHubIDから自分が集めたカードを全て取得する
 func (r *cardRepository) FindAll(githubID string) ([]domain.CardWithOwner, error) {
-	// ① GitHubIDからユーザーを特定
+	// GitHubIDからユーザーを特定
 	var collector database.User
 	if err := r.db.First(&collector, "github_id = ?", githubID).Error; err != nil {
 		return nil, err
 	}
 
-	// ② Preloadで関連データを一括取得
+	// Preloadで関連データを一括取得
 	var collectedCards []database.CollectedCard
 	if err := r.db.
 		Preload("Card").
@@ -36,7 +36,7 @@ func (r *cardRepository) FindAll(githubID string) ([]domain.CardWithOwner, error
 		return nil, err
 	}
 
-	// ③ ドメインモデルに変換（DBアクセスなし）
+	// ドメインモデルに変換（DBアクセスなし）
 	var result []domain.CardWithOwner
 	for _, cc := range collectedCards {
 		blocks, err := parseBlocks(cc.Card.User.Identicon.BlocksData)
