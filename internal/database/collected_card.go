@@ -12,6 +12,8 @@ type CollectedCard struct {
 	UserID      uuid.UUID `gorm:"type:uuid;not null"`
 	CardID      uuid.UUID `gorm:"type:uuid;not null"`
 	CollectedAt time.Time `gorm:"autoCreateTime"`
+
+	Card Card `gorm:"foreignKey:CardID"`
 }
 
 func (cc *CollectedCard) BeforeCreate(tx *gorm.DB) error {

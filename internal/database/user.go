@@ -14,6 +14,8 @@ type User struct {
 	GithubID  string    `gorm:"not null"`
 	IconURL   string    `gorm:"not null"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
+
+	Identicon Identicon `gorm:"foreignKey:UserID"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {

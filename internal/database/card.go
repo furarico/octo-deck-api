@@ -11,6 +11,8 @@ type Card struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	UserID    uuid.UUID `gorm:"type:uuid;not null"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
+
+	User User `gorm:"foreignKey:UserID"`
 }
 
 func (c *Card) BeforeCreate(tx *gorm.DB) error {
