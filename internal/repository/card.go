@@ -24,47 +24,34 @@ func (r *cardRepository) FindAll(githubID string) ([]domain.CardWithOwner, error
 		return nil, err
 	}
 
-	// ② collected_cardsテーブルからそのユーザーが集めたカードを取得
+	// ② Preloadで関連データを一括取得
 	var collectedCards []database.CollectedCard
-	if err := r.db.Find(&collectedCards, "user_id = ?", collector.ID).Error; err != nil {
+	if err := r.db.
+		Preload("Card").
+		Preload("Card.User").
+		Preload("Card.User.Identicon").
+		Where("user_id = ?", collector.ID).
+		Find(&collectedCards).Error; err != nil {
 		return nil, err
 	}
 
-	// ③ 各カードの情報を取得
+	// ③ ドメインモデルに変換（DBアクセスなし）
 	var result []domain.CardWithOwner
 	for _, cc := range collectedCards {
-		// カードを取得
-		var dbCard database.Card
-		if err := r.db.First(&dbCard, "id = ?", cc.CardID).Error; err != nil {
-			return nil, err
-		}
-
-		// カードの所有者を取得
-		var dbUser database.User
-		if err := r.db.First(&dbUser, "id = ?", dbCard.UserID).Error; err != nil {
-			return nil, err
-		}
-
-		// Identiconを取得
-		var dbIdenticon database.Identicon
-		if err := r.db.First(&dbIdenticon, "user_id = ?", dbUser.ID).Error; err != nil {
-			return nil, err
-		}
-
 		cardWithOwner := domain.CardWithOwner{
 			Card: &domain.Card{
-				ID:      domain.CardID(dbCard.ID),
-				OwnerID: domain.UserID(dbCard.UserID),
+				ID:      domain.CardID(cc.Card.ID),
+				OwnerID: domain.UserID(cc.Card.UserID),
 			},
 			Owner: &domain.User{
-				ID:       domain.UserID(dbUser.ID),
-				UserName: dbUser.UserName,
-				FullName: dbUser.FullName,
-				GitHubID: dbUser.GithubID,
-				IconURL:  dbUser.IconURL,
+				ID:       domain.UserID(cc.Card.User.ID),
+				UserName: cc.Card.User.UserName,
+				FullName: cc.Card.User.FullName,
+				GitHubID: cc.Card.User.GithubID,
+				IconURL:  cc.Card.User.IconURL,
 				Identicon: domain.Identicon{
-					Color:  domain.Color(dbIdenticon.Color),
-					Blocks: parseBlocks(dbIdenticon.BlocksData),
+					Color:  domain.Color(cc.Card.User.Identicon.Color),
+					Blocks: parseBlocks(cc.Card.User.Identicon.BlocksData),
 				},
 			},
 		}
@@ -77,17 +64,10 @@ func (r *cardRepository) FindAll(githubID string) ([]domain.CardWithOwner, error
 // FindByID は指定されたIDのカードを取得する
 func (r *cardRepository) FindByID(id string) (*domain.CardWithOwner, error) {
 	var dbCard database.Card
-	if err := r.db.First(&dbCard, "id = ?", id).Error; err != nil {
-		return nil, err
-	}
-
-	var dbUser database.User
-	if err := r.db.First(&dbUser, "id = ?", dbCard.UserID).Error; err != nil {
-		return nil, err
-	}
-
-	var dbIdenticon database.Identicon
-	if err := r.db.First(&dbIdenticon, "user_id = ?", dbUser.ID).Error; err != nil {
+	if err := r.db.
+		Preload("User").
+		Preload("User.Identicon").
+		First(&dbCard, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 
@@ -97,14 +77,14 @@ func (r *cardRepository) FindByID(id string) (*domain.CardWithOwner, error) {
 			OwnerID: domain.UserID(dbCard.UserID),
 		},
 		Owner: &domain.User{
-			ID:       domain.UserID(dbUser.ID),
-			UserName: dbUser.UserName,
-			FullName: dbUser.FullName,
-			GitHubID: dbUser.GithubID,
-			IconURL:  dbUser.IconURL,
+			ID:       domain.UserID(dbCard.User.ID),
+			UserName: dbCard.User.UserName,
+			FullName: dbCard.User.FullName,
+			GitHubID: dbCard.User.GithubID,
+			IconURL:  dbCard.User.IconURL,
 			Identicon: domain.Identicon{
-				Color:  domain.Color(dbIdenticon.Color),
-				Blocks: parseBlocks(dbIdenticon.BlocksData),
+				Color:  domain.Color(dbCard.User.Identicon.Color),
+				Blocks: parseBlocks(dbCard.User.Identicon.BlocksData),
 			},
 		},
 	}, nil
@@ -113,17 +93,14 @@ func (r *cardRepository) FindByID(id string) (*domain.CardWithOwner, error) {
 // FindMyCard はGitHubIDから自分のカードを取得する
 func (r *cardRepository) FindMyCard(githubID string) (*domain.CardWithOwner, error) {
 	var dbUser database.User
-	if err := r.db.First(&dbUser, "github_id = ?", githubID).Error; err != nil {
+	if err := r.db.
+		Preload("Identicon").
+		First(&dbUser, "github_id = ?", githubID).Error; err != nil {
 		return nil, err
 	}
 
 	var dbCard database.Card
 	if err := r.db.First(&dbCard, "user_id = ?", dbUser.ID).Error; err != nil {
-		return nil, err
-	}
-
-	var dbIdenticon database.Identicon
-	if err := r.db.First(&dbIdenticon, "user_id = ?", dbUser.ID).Error; err != nil {
 		return nil, err
 	}
 
@@ -139,8 +116,8 @@ func (r *cardRepository) FindMyCard(githubID string) (*domain.CardWithOwner, err
 			GitHubID: dbUser.GithubID,
 			IconURL:  dbUser.IconURL,
 			Identicon: domain.Identicon{
-				Color:  domain.Color(dbIdenticon.Color),
-				Blocks: parseBlocks(dbIdenticon.BlocksData),
+				Color:  domain.Color(dbUser.Identicon.Color),
+				Blocks: parseBlocks(dbUser.Identicon.BlocksData),
 			},
 		},
 	}, nil
