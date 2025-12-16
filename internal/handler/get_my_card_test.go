@@ -89,6 +89,10 @@ func TestGetMyCard(t *testing.T) {
 			cardService := service.NewCardService(repo)
 			cardHandler := NewHandler(cardService)
 			router := gin.Default()
+			router.Use(func(c *gin.Context) {
+				c.Set("github_id", "test_user")
+				c.Next()
+			})
 			api.RegisterHandlers(router, cardHandler)
 
 			w := httptest.NewRecorder()
