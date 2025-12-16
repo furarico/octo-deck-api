@@ -8,6 +8,10 @@ import (
 
 // APIのCard型に変換する
 func convertCardToAPI(card domain.CardWithOwner) api.Card {
+	// Check for nil pointers to avoid panic
+	if card.Owner == nil || card.Card == nil {
+		return api.Card{}
+	}
 	return api.Card{
 		FullName: card.Owner.FullName,
 		IconUrl:  card.Owner.IconURL,
