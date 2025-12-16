@@ -8,5 +8,7 @@ func AutoMigrate(db *gorm.DB) error {
 		&Card{},
 		&CollectedCard{},
 		&Identicon{},
+		&Community{},
+		&CommunityUser{},
 	)
 }
