@@ -46,5 +46,4 @@ erDiagram
     USERS ||--|| IDENTICONS : has
     USERS ||--o{ COMMUNITY_USERS : posts_to
     COMMUNITIES ||--o{ COMMUNITY_USERS : contains
-    CARDS ||--o{ COMMUNITY_USERS : posted_in
 ```
