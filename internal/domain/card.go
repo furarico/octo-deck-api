@@ -26,9 +26,3 @@ func NewCard(ownerID UserID) *Card {
 		OwnerID: ownerID,
 	}
 }
-
-// CardWithOwner はカードと所有者情報を組み合わせた集約
-type CardWithOwner struct {
-	Card  *Card
-	Owner *User
-}
