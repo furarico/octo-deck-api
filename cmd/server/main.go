@@ -5,9 +5,7 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/database"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/handler"
-	"github.com/furarico/octo-deck-api/internal/identicon"
 	authmiddleware "github.com/furarico/octo-deck-api/internal/middleware"
 	"github.com/furarico/octo-deck-api/internal/repository"
 	"github.com/furarico/octo-deck-api/internal/service"
@@ -47,11 +45,12 @@ func main() {
 	router.Use(oapimiddleware.OapiRequestValidator(spec))
 	router.Use(authmiddleware.AuthMiddleware())
 
-	identiconGen := identicon.NewGenerator()
+	// identiconGen := identicon.NewGenerator()
 
 	// cardRepository := repository.NewCardRepository(db)
 	cardRepository := repository.NewMockCardRepository()
-	cardService := service.NewCardService(cardRepository, github.NewClient, identiconGen)
+	// TODO: 後ほどGitHub API Clientを注入
+	cardService := service.NewCardService(cardRepository)
 	cardHandler := handler.NewHandler(cardService)
 
 	api.RegisterHandlers(router, cardHandler)
