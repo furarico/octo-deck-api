@@ -4,10 +4,7 @@
 erDiagram
     USERS {
         string id PK
-        string user_name
-        string full_name
         string github_id
-        string icon_url
     }
 
     CARDS {
@@ -30,8 +27,23 @@ erDiagram
         json blocks_data
     }
 
+    COMMUNITIES {
+        string id PK
+        string name
+        datetime created_at
+    }
+
+    COMMUNITY_USERS {
+    string id PK
+    string community_id FK
+    string user_id FK
+    datetime joined_at
+}
+
     USERS ||--|| CARDS : creates
     USERS ||--o{ COLLECTED_CARDS : holds
     CARDS ||--o{ COLLECTED_CARDS : is_collected_in
     USERS ||--|| IDENTICONS : has
+    USERS ||--o{ COMMUNITY_USERS : posts_to
+    COMMUNITIES ||--o{ COMMUNITY_USERS : contains
 ```
