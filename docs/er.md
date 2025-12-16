@@ -30,8 +30,9 @@ erDiagram
     COMMUNITIES {
         string id PK
         string user_id FK
+        string name
         string description
-        datetime collected_at
+        datetime created_at
     }
 
     COMMUNITY_CARDS {
