@@ -9,12 +9,14 @@ import (
 // APIのCard型に変換する
 func convertCardToAPI(card domain.Card) api.Card {
 	return api.Card{
-		Id: uuid.UUID(card.ID).String(),
+		GithubId: card.GithubID,
+		UserName: "", // TODO: GitHubから取得したユーザー名を設定
+		FullName: "", // TODO: GitHubから取得したフルネームを設定
+		IconUrl:  "", // TODO: GitHubから取得したアイコンURLを設定
 		Identicon: api.Identicon{
 			Blocks: convertBlocks(card.Blocks),
 			Color:  string(card.Color),
 		},
-		UserName: card.GithubID,
 	}
 }
 
@@ -28,4 +30,12 @@ func convertBlocks(blocks domain.Blocks) [][]bool {
 		}
 	}
 	return blocksArray
+}
+
+// APIのCommunity型に変換する
+func convertCommunityToAPI(community domain.Community) api.Community {
+	return api.Community{
+		Id:   uuid.UUID(community.ID).String(),
+		Name: community.Name,
+	}
 }
