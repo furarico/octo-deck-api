@@ -3,21 +3,18 @@
 ```mermaid
 erDiagram
     CARDS {
-        string github_id PK
+        string id PK
+        string github_id
         datetime created_at
+        string color
+        json blocks_data
     }
 
     COLLECTED_CARDS {
         string id PK
+        string collector_github_id
         string card_id FK
         datetime collected_at
-    }
-
-    IDENTICONS {
-        string id PK
-        string github_id FK
-        string color
-        json blocks_data
     }
 
     COMMUNITIES {
@@ -26,15 +23,14 @@ erDiagram
         datetime created_at
     }
 
-    COMMUNITY_USERS {
+    COMMUNITY_CARDS {
         string id PK
         string community_id FK
-        string github_id FK
+        string card_id FK
         datetime joined_at
     }
 
     CARDS ||--o{ COLLECTED_CARDS : is_collected_in
-    CARDS ||--|| IDENTICONS : has
-    CARDS ||--o{ COMMUNITY_USERS : posts_to
-    COMMUNITIES ||--o{ COMMUNITY_USERS : contains
+    CARDS ||--o{ COMMUNITY_CARDS : posts_to
+    COMMUNITIES ||--o{ COMMUNITY_CARDS : contains
 ```
