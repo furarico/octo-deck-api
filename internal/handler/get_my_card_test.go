@@ -2,11 +2,13 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	api "github.com/furarico/octo-deck-api/generated"
+	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/repository"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -25,7 +27,25 @@ func TestGetMyCard(t *testing.T) {
 		{
 			name: "正常に自分のカードを取得できる",
 			setupMock: func() *repository.MockCardRepository {
-				return repository.NewMockCardRepository()
+				return &repository.MockCardRepository{
+					FindMyCardFunc: func(githubID string) (*domain.CardWithOwner, error) {
+						return &domain.CardWithOwner{
+							Card: domain.Card{
+								ID: domain.NewCardID(),
+							},
+							Owner: domain.User{
+								UserName: "my_user",
+								FullName: "My User",
+								GitHubID: "my_user",
+								IconURL:  "https://example.com/my_icon.png",
+								Identicon: domain.Identicon{
+									Color:  domain.Color("#abcdef"),
+									Blocks: domain.Blocks{},
+								},
+							},
+						}, nil
+					},
+				}
 			},
 			wantCode: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
@@ -34,19 +54,29 @@ func TestGetMyCard(t *testing.T) {
 				if err != nil {
 					t.Errorf("JSONパースに失敗しました: %v", err)
 				}
+				if response.UserName != "my_user" {
+					t.Errorf("UserNameが違う: 期待=my_user, 実際=%s", response.UserName)
+				}
 			},
 		},
 		{
-			name: "空の結果を正常に返せる",
+			name: "カードが見つからない場合はエラーを返す",
 			setupMock: func() *repository.MockCardRepository {
-				return repository.NewMockCardRepository()
+				return &repository.MockCardRepository{
+					FindMyCardFunc: func(githubID string) (*domain.CardWithOwner, error) {
+						return nil, fmt.Errorf("my card not found")
+					},
+				}
 			},
-			wantCode: http.StatusOK,
+			wantCode: http.StatusNotFound,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var response api.Card
+				var response map[string]string
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				if err != nil {
 					t.Errorf("JSONパースに失敗しました: %v", err)
+				}
+				if _, ok := response["error"]; !ok {
+					t.Errorf("エラーメッセージがありません")
 				}
 			},
 		},
@@ -59,6 +89,10 @@ func TestGetMyCard(t *testing.T) {
 			cardService := service.NewCardService(repo)
 			cardHandler := NewHandler(cardService)
 			router := gin.Default()
+			router.Use(func(c *gin.Context) {
+				c.Set("github_id", "test_user")
+				c.Next()
+			})
 			api.RegisterHandlers(router, cardHandler)
 
 			w := httptest.NewRecorder()

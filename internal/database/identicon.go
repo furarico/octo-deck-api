@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -21,4 +22,16 @@ func (i *Identicon) BeforeCreate(tx *gorm.DB) error {
 		i.ID = uuid.New()
 	}
 	return nil
+}
+
+func (i *Identicon) ToDomain() *domain.Identicon {
+	var blocks domain.Blocks
+	_ = json.Unmarshal(i.BlocksData, &blocks)
+
+	return &domain.Identicon{
+		ID:     domain.IdenticonID(i.ID),
+		UserID: domain.UserID(i.UserID),
+		Color:  domain.Color(i.Color),
+		Blocks: blocks,
+	}
 }

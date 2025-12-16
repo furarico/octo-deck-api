@@ -16,7 +16,5 @@ func (h *Handler) GetCard(c *gin.Context, id string) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"card": card,
-	})
+	c.JSON(http.StatusOK, convertCardToAPI(*card))
 }

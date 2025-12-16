@@ -43,6 +43,7 @@ func main() {
 
 	router.Use(middleware.OapiRequestValidator(spec))
 
+	// cardRepository := repository.NewCardRepository(db)
 	cardRepository := repository.NewMockCardRepository()
 	cardService := service.NewCardService(cardRepository)
 	cardHandler := handler.NewHandler(cardService)

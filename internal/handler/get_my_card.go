@@ -8,7 +8,16 @@ import (
 
 // (GET /cards/me)
 func (h *Handler) GetMyCard(c *gin.Context) {
-	card, err := h.cardService.GetMyCard()
+	// TODO: 認証情報からGitHubIDを取得する
+	githubID := c.GetString("github_id")
+	if githubID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "github_id is missing from context",
+		})
+		return
+	}
+
+	card, err := h.cardService.GetMyCard(githubID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
@@ -16,7 +25,5 @@ func (h *Handler) GetMyCard(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"card": card,
-	})
+	c.JSON(http.StatusOK, convertCardToAPI(*card))
 }
