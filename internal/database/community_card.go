@@ -13,6 +13,9 @@ type CommunityCard struct {
 	CommunityID uuid.UUID `gorm:"type:uuid;not null"`
 	CardID      uuid.UUID `gorm:"type:uuid;not null"`
 	JoinedAt    time.Time `gorm:"autoCreateTime"`
+
+	Card      Card      `gorm:"foreignKey:CardID"`
+	Community Community `gorm:"foreignKey:CommunityID"`
 }
 
 func (cc *CommunityCard) BeforeCreate(tx *gorm.DB) error {

@@ -26,7 +26,7 @@ func (cc *CollectedCard) BeforeCreate(tx *gorm.DB) error {
 
 func (cc *CollectedCard) ToDomain() *domain.CollectedCard {
 	return &domain.CollectedCard{
-		ID                domain.CollectedCardID(cc.ID),
+		ID:                domain.CollectedCardID(cc.ID),
 		CollectorGithubID: cc.CollectorGithubID,
 		CardID:            domain.CardID(cc.CardID),
 	}
