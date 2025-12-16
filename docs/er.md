@@ -45,6 +45,6 @@ erDiagram
     CARDS ||--o{ COLLECTED_CARDS : is_collected_in
     USERS ||--|| IDENTICONS : has
     USERS ||--o{ COMMUNITY_USERS : posts_to
-    COMMUNITIES ||--o{ COMMUNITY_CARDS : contains
-    CARDS ||--o{ COMMUNITY_CARDS : posted_in
+    COMMUNITIES ||--o{ COMMUNITY_USERS : contains
+    CARDS ||--o{ COMMUNITY_USERS : posted_in
 ```
