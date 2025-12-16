@@ -11,15 +11,15 @@ func NewCollectedCardID() CollectedCardID {
 }
 
 type CollectedCard struct {
-	ID          CollectedCardID
-	CollectorID UserID
-	CardID      CardID
+	ID                CollectedCardID
+	CollectorGithubID string
+	CardID            CardID
 }
 
-func NewCollectedCard(collectorID UserID, cardID CardID) *CollectedCard {
+func NewCollectedCard(collectorGithubID string, cardID CardID) *CollectedCard {
 	return &CollectedCard{
-		ID:          NewCollectedCardID(),
-		CollectorID: collectorID,
-		CardID:      cardID,
+		ID:                NewCollectedCardID(),
+		CollectorGithubID: collectorGithubID,
+		CardID:            cardID,
 	}
 }

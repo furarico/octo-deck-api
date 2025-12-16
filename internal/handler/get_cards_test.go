@@ -27,34 +27,25 @@ func TestGetCards(t *testing.T) {
 			name: "正常にカード一覧を取得できる",
 			setupMock: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllFunc: func(githubID string) ([]domain.CardWithOwner, error) {
-						return []domain.CardWithOwner{
+					FindAllFunc: func(githubID string) ([]domain.Card, error) {
+						return []domain.Card{
 							{
-								Card: domain.Card{ID: domain.NewCardID()},
-								Owner: domain.User{
-									UserName:  "user1",
-									FullName:  "User One",
-									IconURL:   "https://example.com/icon1.png",
-									Identicon: domain.Identicon{Color: "#111111", Blocks: domain.Blocks{}},
-								},
+								ID:       domain.NewCardID(),
+								GithubID: "user1",
+								Color:    "#111111",
+								Blocks:   domain.Blocks{},
 							},
 							{
-								Card: domain.Card{ID: domain.NewCardID()},
-								Owner: domain.User{
-									UserName:  "user2",
-									FullName:  "User Two",
-									IconURL:   "https://example.com/icon2.png",
-									Identicon: domain.Identicon{Color: "#222222", Blocks: domain.Blocks{}},
-								},
+								ID:       domain.NewCardID(),
+								GithubID: "user2",
+								Color:    "#222222",
+								Blocks:   domain.Blocks{},
 							},
 							{
-								Card: domain.Card{ID: domain.NewCardID()},
-								Owner: domain.User{
-									UserName:  "user3",
-									FullName:  "User Three",
-									IconURL:   "https://example.com/icon3.png",
-									Identicon: domain.Identicon{Color: "#333333", Blocks: domain.Blocks{}},
-								},
+								ID:       domain.NewCardID(),
+								GithubID: "user3",
+								Color:    "#333333",
+								Blocks:   domain.Blocks{},
 							},
 						}, nil
 					},
@@ -78,8 +69,8 @@ func TestGetCards(t *testing.T) {
 			name: "空の結果を正常に返せる",
 			setupMock: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllFunc: func(githubID string) ([]domain.CardWithOwner, error) {
-						return []domain.CardWithOwner{}, nil
+					FindAllFunc: func(githubID string) ([]domain.Card, error) {
+						return []domain.Card{}, nil
 					},
 				}
 			},
