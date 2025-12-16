@@ -9,15 +9,32 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
+)
+
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
 )
 
 // Card defines model for Card.
 type Card struct {
 	FullName  string    `json:"fullName"`
+	GithubId  string    `json:"githubId"`
 	IconUrl   string    `json:"iconUrl"`
-	Id        string    `json:"id"`
 	Identicon Identicon `json:"identicon"`
 	UserName  string    `json:"userName"`
+}
+
+// Community defines model for Community.
+type Community struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// Contribution defines model for Contribution.
+type Contribution struct {
+	Count int32              `json:"count"`
+	Date  openapi_types.Date `json:"date"`
 }
 
 // Identicon defines model for Identicon.
@@ -29,17 +46,67 @@ type Identicon struct {
 	Color string `json:"color"`
 }
 
+// UserStats defines model for UserStats.
+type UserStats struct {
+	Contributions []Contribution `json:"contributions"`
+}
+
+// AddCardToDeckTextBody defines parameters for AddCardToDeck.
+type AddCardToDeckTextBody = string
+
+// CreateCommunityTextBody defines parameters for CreateCommunity.
+type CreateCommunityTextBody = string
+
+// AddCardToDeckTextRequestBody defines body for AddCardToDeck for text/plain ContentType.
+type AddCardToDeckTextRequestBody = AddCardToDeckTextBody
+
+// CreateCommunityTextRequestBody defines body for CreateCommunity for text/plain ContentType.
+type CreateCommunityTextRequestBody = CreateCommunityTextBody
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// カード一覧取得
 	// (GET /cards)
 	GetCards(c *gin.Context)
+	// カードをデッキに追加
+	// (POST /cards)
+	AddCardToDeck(c *gin.Context)
 	// 自分のカード取得
 	// (GET /cards/me)
 	GetMyCard(c *gin.Context)
-	// カード取得
-	// (GET /cards/{id})
-	GetCard(c *gin.Context, id string)
+	// カードをデッキから削除
+	// (DELETE /cards/{githubId})
+	RemoveCardFromDeck(c *gin.Context, githubId string)
+	// 指定したカード取得
+	// (GET /cards/{githubId})
+	GetCard(c *gin.Context, githubId string)
+	// コミュニティ一覧取得
+	// (GET /communities)
+	GetCommunities(c *gin.Context)
+	// コミュニティを作成
+	// (POST /communities)
+	CreateCommunity(c *gin.Context)
+	// コミュニティを削除
+	// (DELETE /communities/{id})
+	DeleteCommunity(c *gin.Context, id string)
+	// 指定したコミュニティ取得
+	// (GET /communities/{id})
+	GetCommunity(c *gin.Context, id string)
+	// 指定したコミュニティの自分のカードを削除
+	// (DELETE /communities/{id}/cards)
+	RemoveCardFromCommunity(c *gin.Context, id string)
+	// 指定したコミュニティのカード一覧取得
+	// (GET /communities/{id}/cards)
+	GetCommunityCards(c *gin.Context, id string)
+	// 指定したコミュニティに自分のカードを追加
+	// (POST /communities/{id}/cards)
+	AddCardToCommunity(c *gin.Context, id string)
+	// 自分の統計情報取得
+	// (GET /stats/me)
+	GetMyStats(c *gin.Context)
+	// ユーザーの統計情報取得
+	// (GET /stats/{githubId})
+	GetUserStats(c *gin.Context, githubId string)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -54,6 +121,8 @@ type MiddlewareFunc func(c *gin.Context)
 // GetCards operation middleware
 func (siw *ServerInterfaceWrapper) GetCards(c *gin.Context) {
 
+	c.Set(BearerAuthScopes, []string{})
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -64,8 +133,25 @@ func (siw *ServerInterfaceWrapper) GetCards(c *gin.Context) {
 	siw.Handler.GetCards(c)
 }
 
+// AddCardToDeck operation middleware
+func (siw *ServerInterfaceWrapper) AddCardToDeck(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddCardToDeck(c)
+}
+
 // GetMyCard operation middleware
 func (siw *ServerInterfaceWrapper) GetMyCard(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
 
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
@@ -77,8 +163,90 @@ func (siw *ServerInterfaceWrapper) GetMyCard(c *gin.Context) {
 	siw.Handler.GetMyCard(c)
 }
 
+// RemoveCardFromDeck operation middleware
+func (siw *ServerInterfaceWrapper) RemoveCardFromDeck(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "githubId" -------------
+	var githubId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "githubId", c.Param("githubId"), &githubId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter githubId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RemoveCardFromDeck(c, githubId)
+}
+
 // GetCard operation middleware
 func (siw *ServerInterfaceWrapper) GetCard(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "githubId" -------------
+	var githubId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "githubId", c.Param("githubId"), &githubId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter githubId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCard(c, githubId)
+}
+
+// GetCommunities operation middleware
+func (siw *ServerInterfaceWrapper) GetCommunities(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCommunities(c)
+}
+
+// CreateCommunity operation middleware
+func (siw *ServerInterfaceWrapper) CreateCommunity(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateCommunity(c)
+}
+
+// DeleteCommunity operation middleware
+func (siw *ServerInterfaceWrapper) DeleteCommunity(c *gin.Context) {
 
 	var err error
 
@@ -91,6 +259,8 @@ func (siw *ServerInterfaceWrapper) GetCard(c *gin.Context) {
 		return
 	}
 
+	c.Set(BearerAuthScopes, []string{})
+
 	for _, middleware := range siw.HandlerMiddlewares {
 		middleware(c)
 		if c.IsAborted() {
@@ -98,7 +268,152 @@ func (siw *ServerInterfaceWrapper) GetCard(c *gin.Context) {
 		}
 	}
 
-	siw.Handler.GetCard(c, id)
+	siw.Handler.DeleteCommunity(c, id)
+}
+
+// GetCommunity operation middleware
+func (siw *ServerInterfaceWrapper) GetCommunity(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCommunity(c, id)
+}
+
+// RemoveCardFromCommunity operation middleware
+func (siw *ServerInterfaceWrapper) RemoveCardFromCommunity(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RemoveCardFromCommunity(c, id)
+}
+
+// GetCommunityCards operation middleware
+func (siw *ServerInterfaceWrapper) GetCommunityCards(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCommunityCards(c, id)
+}
+
+// AddCardToCommunity operation middleware
+func (siw *ServerInterfaceWrapper) AddCardToCommunity(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddCardToCommunity(c, id)
+}
+
+// GetMyStats operation middleware
+func (siw *ServerInterfaceWrapper) GetMyStats(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMyStats(c)
+}
+
+// GetUserStats operation middleware
+func (siw *ServerInterfaceWrapper) GetUserStats(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "githubId" -------------
+	var githubId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "githubId", c.Param("githubId"), &githubId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter githubId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetUserStats(c, githubId)
 }
 
 // GinServerOptions provides options for the Gin server.
@@ -129,6 +444,17 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	}
 
 	router.GET(options.BaseURL+"/cards", wrapper.GetCards)
+	router.POST(options.BaseURL+"/cards", wrapper.AddCardToDeck)
 	router.GET(options.BaseURL+"/cards/me", wrapper.GetMyCard)
-	router.GET(options.BaseURL+"/cards/:id", wrapper.GetCard)
+	router.DELETE(options.BaseURL+"/cards/:githubId", wrapper.RemoveCardFromDeck)
+	router.GET(options.BaseURL+"/cards/:githubId", wrapper.GetCard)
+	router.GET(options.BaseURL+"/communities", wrapper.GetCommunities)
+	router.POST(options.BaseURL+"/communities", wrapper.CreateCommunity)
+	router.DELETE(options.BaseURL+"/communities/:id", wrapper.DeleteCommunity)
+	router.GET(options.BaseURL+"/communities/:id", wrapper.GetCommunity)
+	router.DELETE(options.BaseURL+"/communities/:id/cards", wrapper.RemoveCardFromCommunity)
+	router.GET(options.BaseURL+"/communities/:id/cards", wrapper.GetCommunityCards)
+	router.POST(options.BaseURL+"/communities/:id/cards", wrapper.AddCardToCommunity)
+	router.GET(options.BaseURL+"/stats/me", wrapper.GetMyStats)
+	router.GET(options.BaseURL+"/stats/:githubId", wrapper.GetUserStats)
 }
