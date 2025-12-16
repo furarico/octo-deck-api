@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/gin-gonic/gin"
-	"github.com/google/go-github/v80/github"
 )
 
 // GitHub Appのアクセストークンを検証し、ユーザー情報をContextにセット
@@ -27,8 +27,8 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// GitHub APIでユーザー情報を取得
-		client := github.NewClient(nil).WithAuthToken(token)
-		user, _, err := client.Users.Get(c.Request.Context(), "")
+		ghClient := github.NewClient(token)
+		user, err := ghClient.GetAuthenticatedUser(c.Request.Context())
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			c.Abort()
@@ -36,11 +36,11 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Contextにユーザー情報をセット
-		c.Set("github_id", strconv.FormatInt(user.GetID(), 10))
+		c.Set("github_id", strconv.FormatInt(user.ID, 10))
 		c.Set("github_token", token)
-		c.Set("github_login", user.GetLogin())
-		c.Set("github_name", user.GetName())
-		c.Set("github_avatar_url", user.GetAvatarURL())
+		c.Set("github_login", user.Login)
+		c.Set("github_name", user.Name)
+		c.Set("github_avatar_url", user.AvatarURL)
 
 		c.Next()
 	}
