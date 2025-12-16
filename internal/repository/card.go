@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/furarico/octo-deck-api/internal/database"
 	"github.com/furarico/octo-deck-api/internal/domain"
@@ -38,6 +39,10 @@ func (r *cardRepository) FindAll(githubID string) ([]domain.CardWithOwner, error
 	// ③ ドメインモデルに変換（DBアクセスなし）
 	var result []domain.CardWithOwner
 	for _, cc := range collectedCards {
+		blocks, err := parseBlocks(cc.Card.User.Identicon.BlocksData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse blocks: %w", err)
+		}
 		cardWithOwner := domain.CardWithOwner{
 			Card: &domain.Card{
 				ID:      domain.CardID(cc.Card.ID),
@@ -51,7 +56,7 @@ func (r *cardRepository) FindAll(githubID string) ([]domain.CardWithOwner, error
 				IconURL:  cc.Card.User.IconURL,
 				Identicon: domain.Identicon{
 					Color:  domain.Color(cc.Card.User.Identicon.Color),
-					Blocks: parseBlocks(cc.Card.User.Identicon.BlocksData),
+					Blocks: blocks,
 				},
 			},
 		}
@@ -71,6 +76,11 @@ func (r *cardRepository) FindByID(id string) (*domain.CardWithOwner, error) {
 		return nil, err
 	}
 
+	blocks, err := parseBlocks(dbCard.User.Identicon.BlocksData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse blocks: %w", err)
+	}
+
 	return &domain.CardWithOwner{
 		Card: &domain.Card{
 			ID:      domain.CardID(dbCard.ID),
@@ -84,7 +94,7 @@ func (r *cardRepository) FindByID(id string) (*domain.CardWithOwner, error) {
 			IconURL:  dbCard.User.IconURL,
 			Identicon: domain.Identicon{
 				Color:  domain.Color(dbCard.User.Identicon.Color),
-				Blocks: parseBlocks(dbCard.User.Identicon.BlocksData),
+				Blocks: blocks,
 			},
 		},
 	}, nil
@@ -104,6 +114,11 @@ func (r *cardRepository) FindMyCard(githubID string) (*domain.CardWithOwner, err
 		return nil, err
 	}
 
+	blocks, err := parseBlocks(dbUser.Identicon.BlocksData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse blocks: %w", err)
+	}
+
 	return &domain.CardWithOwner{
 		Card: &domain.Card{
 			ID:      domain.CardID(dbCard.ID),
@@ -117,15 +132,17 @@ func (r *cardRepository) FindMyCard(githubID string) (*domain.CardWithOwner, err
 			IconURL:  dbUser.IconURL,
 			Identicon: domain.Identicon{
 				Color:  domain.Color(dbUser.Identicon.Color),
-				Blocks: parseBlocks(dbUser.Identicon.BlocksData),
+				Blocks: blocks,
 			},
 		},
 	}, nil
 }
 
 // parseBlocks はDBのJSON形式をドメインのBlocks型に変換する
-func parseBlocks(data json.RawMessage) domain.Blocks {
+func parseBlocks(data json.RawMessage) (domain.Blocks, error) {
 	var blocks domain.Blocks
-	json.Unmarshal(data, &blocks)
-	return blocks
+	if err := json.Unmarshal(data, &blocks); err != nil {
+		return domain.Blocks{}, err
+	}
+	return blocks, nil
 }
