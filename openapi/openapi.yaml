@@ -8,7 +8,7 @@ paths:
     get:
       operationId: getCards
       summary: カード一覧取得
-      description: Octo Deck API
+      description: 自分のデッキを取得
       parameters: []
       responses:
         '200':
@@ -24,6 +24,28 @@ paths:
                       $ref: '#/components/schemas/Card'
                 required:
                   - cards
+    post:
+      operationId: addCardToDeck
+      summary: カードをデッキに追加
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  card:
+                    $ref: '#/components/schemas/Card'
+                required:
+                  - card
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
   /cards/me:
     get:
       operationId: getMyCard
@@ -41,10 +63,162 @@ paths:
                     $ref: '#/components/schemas/Card'
                 required:
                   - card
-  /cards/{id}:
+  /cards/{githubId}:
     get:
       operationId: getCard
-      summary: カード取得
+      summary: 指定したカード取得
+      description: デッキにないカードも取得できる
+      parameters:
+        - name: githubId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  card:
+                    $ref: '#/components/schemas/Card'
+                required:
+                  - card
+    delete:
+      operationId: removeCardFromDeck
+      summary: カードをデッキから削除
+      parameters:
+        - name: githubId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  card:
+                    $ref: '#/components/schemas/Card'
+                required:
+                  - card
+  /communities:
+    get:
+      operationId: getCommunities
+      summary: コミュニティ一覧取得
+      description: 自分が入っているコミュニティ一覧取得
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  communities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Community'
+                required:
+                  - communities
+    post:
+      operationId: createCommunity
+      summary: コミュニティを作成
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  community:
+                    $ref: '#/components/schemas/Community'
+                required:
+                  - community
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+  /communities/{id}:
+    get:
+      operationId: getCommunity
+      summary: 指定したコミュニティ取得
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  community:
+                    $ref: '#/components/schemas/Community'
+                required:
+                  - community
+    delete:
+      operationId: deleteCommunity
+      summary: コミュニティを削除
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  community:
+                    $ref: '#/components/schemas/Community'
+                required:
+                  - community
+  /communities/{id}/cards:
+    get:
+      operationId: getCommunityCards
+      summary: 指定したコミュニティのカード一覧取得
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cards:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Card'
+                required:
+                  - cards
+    post:
+      operationId: addCardToCommunity
+      summary: 指定したコミュニティに自分のカードを追加
       parameters:
         - name: id
           in: path
@@ -63,18 +237,80 @@ paths:
                     $ref: '#/components/schemas/Card'
                 required:
                   - card
+    delete:
+      operationId: removeCardFromCommunity
+      summary: 指定したコミュニティの自分のカードを削除
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  card:
+                    $ref: '#/components/schemas/Card'
+                required:
+                  - card
+  /stats/me:
+    get:
+      operationId: getMyStats
+      summary: 自分の統計情報取得
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stats:
+                    $ref: '#/components/schemas/UserStats'
+                required:
+                  - stats
+  /stats/{githubId}:
+    get:
+      operationId: getUserStats
+      summary: ユーザーの統計情報取得
+      parameters:
+        - name: githubId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stats:
+                    $ref: '#/components/schemas/UserStats'
+                required:
+                  - stats
+security:
+  - BearerAuth: []
 components:
   schemas:
     Card:
       type: object
       required:
-        - id
+        - githubId
         - userName
         - fullName
         - iconUrl
         - identicon
       properties:
-        id:
+        githubId:
           type: string
         userName:
           type: string
@@ -84,6 +320,28 @@ components:
           type: string
         identicon:
           $ref: '#/components/schemas/Identicon'
+    Community:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Contribution:
+      type: object
+      required:
+        - date
+        - count
+      properties:
+        date:
+          type: string
+          format: date
+        count:
+          type: integer
+          format: int32
     Identicon:
       type: object
       required:
@@ -100,6 +358,19 @@ components:
             items:
               type: boolean
           description: 5x5の二次元配列。trueがブロック
+    UserStats:
+      type: object
+      required:
+        - contributions
+      properties:
+        contributions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contribution'
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: Bearer
 servers:
   - url: http://localhost:8080
     description: Local
