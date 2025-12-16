@@ -30,8 +30,8 @@ func TestGetCards(t *testing.T) {
 					FindAllFunc: func(githubID string) ([]domain.CardWithOwner, error) {
 						return []domain.CardWithOwner{
 							{
-								Card: &domain.Card{ID: domain.NewCardID()},
-								Owner: &domain.User{
+								Card: domain.Card{ID: domain.NewCardID()},
+								Owner: domain.User{
 									UserName:  "user1",
 									FullName:  "User One",
 									IconURL:   "https://example.com/icon1.png",
@@ -39,8 +39,8 @@ func TestGetCards(t *testing.T) {
 								},
 							},
 							{
-								Card: &domain.Card{ID: domain.NewCardID()},
-								Owner: &domain.User{
+								Card: domain.Card{ID: domain.NewCardID()},
+								Owner: domain.User{
 									UserName:  "user2",
 									FullName:  "User Two",
 									IconURL:   "https://example.com/icon2.png",
@@ -48,8 +48,8 @@ func TestGetCards(t *testing.T) {
 								},
 							},
 							{
-								Card: &domain.Card{ID: domain.NewCardID()},
-								Owner: &domain.User{
+								Card: domain.Card{ID: domain.NewCardID()},
+								Owner: domain.User{
 									UserName:  "user3",
 									FullName:  "User Three",
 									IconURL:   "https://example.com/icon3.png",

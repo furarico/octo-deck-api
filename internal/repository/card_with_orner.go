@@ -44,11 +44,11 @@ func (r *cardRepository) FindAll(githubID string) ([]domain.CardWithOwner, error
 			return nil, fmt.Errorf("failed to parse blocks: %w", err)
 		}
 		cardWithOwner := domain.CardWithOwner{
-			Card: &domain.Card{
+			Card: domain.Card{
 				ID:      domain.CardID(cc.Card.ID),
 				OwnerID: domain.UserID(cc.Card.UserID),
 			},
-			Owner: &domain.User{
+			Owner: domain.User{
 				ID:       domain.UserID(cc.Card.User.ID),
 				UserName: cc.Card.User.UserName,
 				FullName: cc.Card.User.FullName,
@@ -82,11 +82,11 @@ func (r *cardRepository) FindByID(id string) (*domain.CardWithOwner, error) {
 	}
 
 	return &domain.CardWithOwner{
-		Card: &domain.Card{
+		Card: domain.Card{
 			ID:      domain.CardID(dbCard.ID),
 			OwnerID: domain.UserID(dbCard.UserID),
 		},
-		Owner: &domain.User{
+		Owner: domain.User{
 			ID:       domain.UserID(dbCard.User.ID),
 			UserName: dbCard.User.UserName,
 			FullName: dbCard.User.FullName,
@@ -120,11 +120,11 @@ func (r *cardRepository) FindMyCard(githubID string) (*domain.CardWithOwner, err
 	}
 
 	return &domain.CardWithOwner{
-		Card: &domain.Card{
+		Card: domain.Card{
 			ID:      domain.CardID(dbCard.ID),
 			OwnerID: domain.UserID(dbCard.UserID),
 		},
-		Owner: &domain.User{
+		Owner: domain.User{
 			ID:       domain.UserID(dbUser.ID),
 			UserName: dbUser.UserName,
 			FullName: dbUser.FullName,

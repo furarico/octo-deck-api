@@ -30,10 +30,10 @@ func TestGetMyCard(t *testing.T) {
 				return &repository.MockCardRepository{
 					FindMyCardFunc: func(githubID string) (*domain.CardWithOwner, error) {
 						return &domain.CardWithOwner{
-							Card: &domain.Card{
+							Card: domain.Card{
 								ID: domain.NewCardID(),
 							},
-							Owner: &domain.User{
+							Owner: domain.User{
 								UserName: "my_user",
 								FullName: "My User",
 								GitHubID: "my_user",
