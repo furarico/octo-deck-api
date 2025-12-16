@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-github/v80/github"
 )
 
+// GitHub Appのアクセストークンを検証し、ユーザー情報をContextにセット
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -25,6 +26,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// GitHub APIでユーザー情報を取得
 		client := github.NewClient(nil).WithAuthToken(token)
 		user, _, err := client.Users.Get(c.Request.Context(), "")
 		if err != nil {
@@ -33,6 +35,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// Contextにユーザー情報をセット
 		c.Set("github_id", strconv.FormatInt(user.GetID(), 10))
 		c.Set("github_token", token)
 		c.Set("github_login", user.GetLogin())
