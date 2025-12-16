@@ -33,7 +33,7 @@ erDiagram
         datetime created_at
     }
 
-    COMMUNITY_CARDS {
+    COMMUNITY_USERS {
     string id PK
     string community_id FK
     string user_id FK
