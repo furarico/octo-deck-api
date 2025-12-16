@@ -10,6 +10,12 @@ import (
 func (h *Handler) GetMyCard(c *gin.Context) {
 	// TODO: 認証情報からGitHubIDを取得する
 	githubID := c.GetString("github_id")
+	if githubID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "github_id is missing from context",
+		})
+		return
+	}
 
 	card, err := h.cardService.GetMyCard(githubID)
 	if err != nil {
