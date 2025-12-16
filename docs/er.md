@@ -31,7 +31,6 @@ erDiagram
         string id PK
         string user_id FK
         string name
-        string description
         datetime created_at
     }
 
