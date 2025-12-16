@@ -8,9 +8,9 @@ import (
 
 // CardRepository はServiceが必要とするRepositoryのインターフェース
 type CardRepository interface {
-	FindAll(githubID string) ([]domain.CardWithOwner, error)
-	FindByID(id string) (*domain.CardWithOwner, error)
-	FindMyCard(githubID string) (*domain.CardWithOwner, error)
+	FindAll(githubID string) ([]domain.Card, error)
+	FindByID(id string) (*domain.Card, error)
+	FindMyCard(githubID string) (*domain.Card, error)
 }
 
 type CardService struct {
@@ -24,7 +24,7 @@ func NewCardService(cardRepo CardRepository) *CardService {
 }
 
 // GetAllCards は自分が集めたカードを全て取得する
-func (s *CardService) GetAllCards(githubID string) ([]domain.CardWithOwner, error) {
+func (s *CardService) GetAllCards(githubID string) ([]domain.Card, error) {
 	cards, err := s.cardRepo.FindAll(githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all cards: %w", err)
@@ -34,7 +34,7 @@ func (s *CardService) GetAllCards(githubID string) ([]domain.CardWithOwner, erro
 }
 
 // GetCardByID は指定されたIDのカードを取得する
-func (s *CardService) GetCardByID(id string) (*domain.CardWithOwner, error) {
+func (s *CardService) GetCardByID(id string) (*domain.Card, error) {
 	card, err := s.cardRepo.FindByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get card by id: %w", err)
@@ -48,7 +48,7 @@ func (s *CardService) GetCardByID(id string) (*domain.CardWithOwner, error) {
 }
 
 // GetMyCard は自分のカードを取得する
-func (s *CardService) GetMyCard(githubID string) (*domain.CardWithOwner, error) {
+func (s *CardService) GetMyCard(githubID string) (*domain.Card, error) {
 	card, err := s.cardRepo.FindMyCard(githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get my card: %w", err)

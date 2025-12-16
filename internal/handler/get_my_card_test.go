@@ -28,21 +28,12 @@ func TestGetMyCard(t *testing.T) {
 			name: "正常に自分のカードを取得できる",
 			setupMock: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.CardWithOwner, error) {
-						return &domain.CardWithOwner{
-							Card: domain.Card{
-								ID: domain.NewCardID(),
-							},
-							Owner: domain.User{
-								UserName: "my_user",
-								FullName: "My User",
-								GitHubID: "my_user",
-								IconURL:  "https://example.com/my_icon.png",
-								Identicon: domain.Identicon{
-									Color:  domain.Color("#abcdef"),
-									Blocks: domain.Blocks{},
-								},
-							},
+					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+						return &domain.Card{
+							ID:       domain.NewCardID(),
+							GithubID: "my_user",
+							Color:    domain.Color("#abcdef"),
+							Blocks:   domain.Blocks{},
 						}, nil
 					},
 				}
@@ -63,7 +54,7 @@ func TestGetMyCard(t *testing.T) {
 			name: "カードが見つからない場合はエラーを返す",
 			setupMock: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.CardWithOwner, error) {
+					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
 						return nil, fmt.Errorf("my card not found")
 					},
 				}

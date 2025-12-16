@@ -14,15 +14,23 @@ func NewCardID() CardID {
 	return CardID(uuid.New())
 }
 
+type Color string
+
+type Blocks [5][5]bool
+
 // Card はカードのエンティティ（DBに保存される単位）
 type Card struct {
-	ID      CardID
-	OwnerID UserID
+	ID       CardID
+	GithubID string
+	Color    Color
+	Blocks   Blocks
 }
 
-func NewCard(ownerID UserID) *Card {
+func NewCard(githubID string, color Color, blocks Blocks) *Card {
 	return &Card{
-		ID:      NewCardID(),
-		OwnerID: ownerID,
+		ID:       NewCardID(),
+		GithubID: githubID,
+		Color:    color,
+		Blocks:   blocks,
 	}
 }

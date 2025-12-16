@@ -15,69 +15,39 @@ func NewCardRepository(db *gorm.DB) *cardRepository {
 }
 
 // FindAll はGitHubIDから自分が集めたカードを全て取得する
-func (r *cardRepository) FindAll(githubID string) ([]domain.CardWithOwner, error) {
-	// GitHubIDからユーザーを特定
-	var collector database.User
-	if err := r.db.First(&collector, "github_id = ?", githubID).Error; err != nil {
-		return nil, err
-	}
-
-	// Preloadで関連データを一括取得
+func (r *cardRepository) FindAll(githubID string) ([]domain.Card, error) {
 	var collectedCards []database.CollectedCard
 	if err := r.db.
 		Preload("Card").
-		Preload("Card.User").
-		Preload("Card.User.Identicon").
-		Where("user_id = ?", collector.ID).
+		Where("collector_github_id = ?", githubID).
 		Find(&collectedCards).Error; err != nil {
 		return nil, err
 	}
 
-	// ドメインモデルに変換（DBアクセスなし）
-	var result []domain.CardWithOwner
+	var result []domain.Card
 	for _, cc := range collectedCards {
-		cardWithOwner := domain.NewCardWithOwner(
-			*cc.Card.ToDomain(),
-			*cc.Card.User.ToDomain(),
-		)
-		result = append(result, cardWithOwner)
+		result = append(result, *cc.Card.ToDomain())
 	}
 
 	return result, nil
 }
 
 // FindByID は指定されたIDのカードを取得する
-func (r *cardRepository) FindByID(id string) (*domain.CardWithOwner, error) {
+func (r *cardRepository) FindByID(id string) (*domain.Card, error) {
 	var dbCard database.Card
-	if err := r.db.
-		Preload("User").
-		Preload("User.Identicon").
-		First(&dbCard, "id = ?", id).Error; err != nil {
+	if err := r.db.First(&dbCard, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 
-	return &domain.CardWithOwner{
-		Card:  *dbCard.ToDomain(),
-		Owner: *dbCard.User.ToDomain(),
-	}, nil
+	return dbCard.ToDomain(), nil
 }
 
 // FindMyCard はGitHubIDから自分のカードを取得する
-func (r *cardRepository) FindMyCard(githubID string) (*domain.CardWithOwner, error) {
-	var dbUser database.User
-	if err := r.db.
-		Preload("Identicon").
-		First(&dbUser, "github_id = ?", githubID).Error; err != nil {
-		return nil, err
-	}
-
+func (r *cardRepository) FindMyCard(githubID string) (*domain.Card, error) {
 	var dbCard database.Card
-	if err := r.db.First(&dbCard, "user_id = ?", dbUser.ID).Error; err != nil {
+	if err := r.db.First(&dbCard, "github_id = ?", githubID).Error; err != nil {
 		return nil, err
 	}
 
-	return &domain.CardWithOwner{
-		Card:  *dbCard.ToDomain(),
-		Owner: *dbUser.ToDomain(),
-	}, nil
+	return dbCard.ToDomain(), nil
 }

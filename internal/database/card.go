@@ -1,6 +1,7 @@
 package database
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
@@ -9,11 +10,11 @@ import (
 )
 
 type Card struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	UserID    uuid.UUID `gorm:"type:uuid;not null"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-
-	User User `gorm:"foreignKey:UserID"`
+	ID         uuid.UUID       `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	GithubID   string          `gorm:"not null"`
+	CreatedAt  time.Time       `gorm:"autoCreateTime"`
+	Color      string          `gorm:"not null"`
+	BlocksData json.RawMessage `gorm:"type:jsonb;not null"`
 }
 
 func (c *Card) BeforeCreate(tx *gorm.DB) error {
@@ -24,8 +25,13 @@ func (c *Card) BeforeCreate(tx *gorm.DB) error {
 }
 
 func (c *Card) ToDomain() *domain.Card {
+	var blocks domain.Blocks
+	_ = json.Unmarshal(c.BlocksData, &blocks)
+
 	return &domain.Card{
-		ID:      domain.CardID(c.ID),
-		OwnerID: domain.UserID(c.UserID),
+		ID:       domain.CardID(c.ID),
+		GithubID: c.GithubID,
+		Color:    domain.Color(c.Color),
+		Blocks:   blocks,
 	}
 }

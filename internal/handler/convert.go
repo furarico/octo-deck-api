@@ -7,16 +7,14 @@ import (
 )
 
 // APIのCard型に変換する
-func convertCardToAPI(card domain.CardWithOwner) api.Card {
+func convertCardToAPI(card domain.Card) api.Card {
 	return api.Card{
-		FullName: card.Owner.FullName,
-		IconUrl:  card.Owner.IconURL,
-		Id:       uuid.UUID(card.Card.ID).String(),
+		Id: uuid.UUID(card.ID).String(),
 		Identicon: api.Identicon{
-			Blocks: convertBlocks(card.Owner.Identicon.Blocks),
-			Color:  string(card.Owner.Identicon.Color),
+			Blocks: convertBlocks(card.Blocks),
+			Color:  string(card.Color),
 		},
-		UserName: card.Owner.UserName,
+		UserName: card.GithubID,
 	}
 }
 
