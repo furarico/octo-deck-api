@@ -6,8 +6,8 @@ import (
 
 type CardID uuid.UUID
 
-func (c CardID) String() {
-	panic("unimplemented")
+func (c CardID) String() string {
+	return uuid.UUID(c).String()
 }
 
 func NewCardID() CardID {
