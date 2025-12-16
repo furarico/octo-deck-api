@@ -5,13 +5,16 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/database"
+	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/handler"
+	"github.com/furarico/octo-deck-api/internal/identicon"
+	authmiddleware "github.com/furarico/octo-deck-api/internal/middleware"
 	"github.com/furarico/octo-deck-api/internal/repository"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	middleware "github.com/oapi-codegen/gin-middleware"
+	oapimiddleware "github.com/oapi-codegen/gin-middleware"
 )
 
 func main() {
@@ -41,11 +44,14 @@ func main() {
 
 	router := gin.Default()
 
-	router.Use(middleware.OapiRequestValidator(spec))
+	router.Use(oapimiddleware.OapiRequestValidator(spec))
+	router.Use(authmiddleware.AuthMiddleware())
+
+	identiconGen := identicon.NewGenerator()
 
 	// cardRepository := repository.NewCardRepository(db)
 	cardRepository := repository.NewMockCardRepository()
-	cardService := service.NewCardService(cardRepository)
+	cardService := service.NewCardService(cardRepository, github.NewClient, identiconGen)
 	cardHandler := handler.NewHandler(cardService)
 
 	api.RegisterHandlers(router, cardHandler)
