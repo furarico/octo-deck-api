@@ -29,7 +29,6 @@ erDiagram
 
     COMMUNITIES {
         string id PK
-        string user_id FK
         string name
         datetime created_at
     }
@@ -37,7 +36,6 @@ erDiagram
     COMMUNITY_CARDS {
     string id PK
     string community_id FK
-    string card_id FK
     string user_id FK
     datetime joined_at
 }
