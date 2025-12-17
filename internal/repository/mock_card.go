@@ -6,6 +6,7 @@ type MockCardRepository struct {
 	FindAllFunc        func(githubID string) ([]domain.Card, error)
 	FindByGitHubIDFunc func(githubID string) (*domain.Card, error)
 	FindMyCardFunc     func(githubID string) (*domain.Card, error)
+	CreateFunc         func(card *domain.Card) error
 }
 
 func NewMockCardRepository() *MockCardRepository {
@@ -35,4 +36,12 @@ func (r *MockCardRepository) FindMyCard(githubID string) (*domain.Card, error) {
 		return r.FindMyCardFunc(githubID)
 	}
 	return nil, nil
+}
+
+// Create は新しいカードを作成する
+func (r *MockCardRepository) Create(card *domain.Card) error {
+	if r.CreateFunc != nil {
+		return r.CreateFunc(card)
+	}
+	return nil
 }

@@ -29,7 +29,7 @@ func TestGetMyCard(t *testing.T) {
 			name: "正常に自分のカードを取得できる",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+					GetOrCreateMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
 						return &domain.Card{
 							ID:       domain.NewCardID(),
 							GithubID: "my_user",
@@ -57,11 +57,11 @@ func TestGetMyCard(t *testing.T) {
 			},
 		},
 		{
-			name: "カードが見つからない場合はエラーを返す",
+			name: "カード作成に失敗した場合はエラーを返す",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
-						return nil, fmt.Errorf("my card not found")
+					GetOrCreateMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+						return nil, fmt.Errorf("failed to create card")
 					},
 				}
 			},
