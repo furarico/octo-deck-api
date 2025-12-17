@@ -18,6 +18,7 @@ type CardRepository interface {
 	FindByGitHubID(githubID string) (*domain.Card, error)
 	FindMyCard(githubID string) (*domain.Card, error)
 	Create(card *domain.Card) error
+	AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error
 }
 
 type CardService struct {
@@ -105,6 +106,30 @@ func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, gi
 		if err := s.cardRepo.Create(card); err != nil {
 			return nil, fmt.Errorf("failed to create card: %w", err)
 		}
+	}
+
+	// GitHub APIからユーザー情報を取得して補完
+	if err := enrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
+		return nil, err
+	}
+
+	return card, nil
+}
+
+// AddCardToDeck はカードをデッキに追加する
+func (s *CardService) AddCardToDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error) {
+	// 追加対象のカードを取得
+	card, err := s.cardRepo.FindByGitHubID(targetGithubID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("card not found: githubID=%s", targetGithubID)
+		}
+		return nil, fmt.Errorf("failed to find card: %w", err)
+	}
+
+	// デッキに追加
+	if err := s.cardRepo.AddToCollectedCards(collectorGithubID, card.ID); err != nil {
+		return nil, fmt.Errorf("failed to add card to deck: %w", err)
 	}
 
 	// GitHub APIからユーザー情報を取得して補完
