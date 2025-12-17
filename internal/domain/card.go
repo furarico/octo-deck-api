@@ -18,10 +18,12 @@ type Color string
 
 type Blocks [5][5]bool
 
-// Card はカードのエンティティ（DBに保存される単位）
 type Card struct {
 	ID       CardID
 	GithubID string
+	UserName string
+	FullName string
+	IconUrl  string
 	Color    Color
 	Blocks   Blocks
 }

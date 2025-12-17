@@ -10,9 +10,9 @@ import (
 func convertCardToAPI(card domain.Card) api.Card {
 	return api.Card{
 		GithubId: card.GithubID,
-		UserName: card.GithubID, // TODO: GitHubから取得したユーザー名を設定
-		FullName: "",            // TODO: GitHubから取得したフルネームを設定
-		IconUrl:  "",            // TODO: GitHubから取得したアイコンURLを設定
+		UserName: card.UserName,
+		FullName: card.FullName,
+		IconUrl:  card.IconUrl,
 		Identicon: api.Identicon{
 			Blocks: convertBlocks(card.Blocks),
 			Color:  string(card.Color),

@@ -35,9 +35,9 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Contextにユーザー情報をセット
+		// Contextにユーザー情報とClientをセット
 		c.Set("github_id", strconv.FormatInt(user.ID, 10))
-		c.Set("github_token", token)
+		c.Set("github_client", ghClient)
 		c.Set("github_login", user.Login)
 		c.Set("github_name", user.Name)
 		c.Set("github_avatar_url", user.AvatarURL)
