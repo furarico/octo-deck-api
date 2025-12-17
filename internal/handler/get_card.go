@@ -19,5 +19,7 @@ func (h *Handler) GetCard(c *gin.Context, githubId string) {
 		return
 	}
 
-	c.JSON(http.StatusOK, convertCardToAPI(*card))
+	c.JSON(http.StatusOK, gin.H{
+		"card": convertCardToAPI(*card),
+	})
 }
