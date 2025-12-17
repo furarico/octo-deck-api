@@ -11,6 +11,10 @@ type CommunityRepository interface {
 	FindAll(githubID string) ([]domain.Community, error)
 	FindByID(id string) (*domain.Community, error)
 	FindCards(id string) ([]domain.Card, error)
+	Create(community *domain.Community) error
+	Delete(id string) error
+	AddCard(communityID string, cardID string) error
+	RemoveCard(communityID string, cardID string) error
 }
 
 type CommunityService struct {
@@ -55,4 +59,42 @@ func (s *CommunityService) GetCommunityCards(id string) ([]domain.Card, error) {
 	}
 
 	return cards, nil
+}
+
+// CreateCommunity はコミュニティを作成する
+func (s *CommunityService) CreateCommunity(name string) (*domain.Community, error) {
+	community := domain.NewCommunity(name)
+
+	if err := s.communityRepo.Create(community); err != nil {
+		return nil, fmt.Errorf("failed to create community: %w", err)
+	}
+
+	return community, nil
+}
+
+// DeleteCommunity はコミュニティを削除する
+func (s *CommunityService) DeleteCommunity(id string) error {
+	if err := s.communityRepo.Delete(id); err != nil {
+		return fmt.Errorf("failed to delete community: %w", err)
+	}
+
+	return nil
+}
+
+// AddCardToCommunity はコミュニティにカードを追加する
+func (s *CommunityService) AddCardToCommunity(communityID string, cardID string) error {
+	if err := s.communityRepo.AddCard(communityID, cardID); err != nil {
+		return fmt.Errorf("failed to add card to community: %w", err)
+	}
+
+	return nil
+}
+
+// RemoveCardFromCommunity はコミュニティからカードを削除する
+func (s *CommunityService) RemoveCardFromCommunity(communityID string, cardID string) error {
+	if err := s.communityRepo.RemoveCard(communityID, cardID); err != nil {
+		return fmt.Errorf("failed to remove card from community: %w", err)
+	}
+
+	return nil
 }
