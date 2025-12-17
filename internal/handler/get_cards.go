@@ -32,5 +32,7 @@ func (h *Handler) GetCards(c *gin.Context) {
 		cardsAPI[i] = convertCardToAPI(card)
 	}
 
-	c.JSON(http.StatusOK, cardsAPI)
+	c.JSON(http.StatusOK, gin.H{
+		"cards": cardsAPI,
+	})
 }

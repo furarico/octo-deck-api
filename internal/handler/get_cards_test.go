@@ -63,15 +63,17 @@ func TestGetCards(t *testing.T) {
 			},
 			wantCode: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var response []api.Card
+				var response struct {
+					Cards []api.Card `json:"cards"`
+				}
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				if err != nil {
 					t.Errorf("JSONパースに失敗しました: %v", err)
 				}
 
 				// カード数をチェック
-				if len(response) != 3 {
-					t.Errorf("カード数が違う: 期待=3, 実際=%d", len(response))
+				if len(response.Cards) != 3 {
+					t.Errorf("カード数が違う: 期待=3, 実際=%d", len(response.Cards))
 				}
 			},
 		},
@@ -86,15 +88,17 @@ func TestGetCards(t *testing.T) {
 			},
 			wantCode: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var response []api.Card
+				var response struct {
+					Cards []api.Card `json:"cards"`
+				}
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				if err != nil {
 					t.Errorf("JSONパースに失敗しました: %v", err)
 				}
 
 				// カード数をチェック
-				if len(response) != 0 {
-					t.Errorf("カード数が違う: 期待=0, 実際=%d", len(response))
+				if len(response.Cards) != 0 {
+					t.Errorf("カード数が違う: 期待=0, 実際=%d", len(response.Cards))
 				}
 			},
 		},

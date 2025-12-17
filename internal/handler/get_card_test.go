@@ -44,7 +44,9 @@ func TestGetCard(t *testing.T) {
 			},
 			wantCode: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var response api.Card
+				var response struct {
+					Card api.Card `json:"card"`
+				}
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				if err != nil {
 					t.Errorf("JSONパースに失敗しました: %v", err)
