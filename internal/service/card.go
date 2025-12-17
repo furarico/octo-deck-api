@@ -12,7 +12,7 @@ import (
 // CardRepository はServiceが必要とするRepositoryのインターフェース
 type CardRepository interface {
 	FindAll(githubID string) ([]domain.Card, error)
-	FindByID(id string) (*domain.Card, error)
+	FindByGitHubID(githubID string) (*domain.Card, error)
 	FindMyCard(githubID string) (*domain.Card, error)
 }
 
@@ -43,15 +43,15 @@ func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubCl
 	return cards, nil
 }
 
-// GetCardByID は指定されたIDのカードを取得する
-func (s *CardService) GetCardByID(ctx context.Context, id string, githubClient *github.Client) (*domain.Card, error) {
-	card, err := s.cardRepo.FindByID(id)
+// GetCardByGitHubID は指定されたGitHub IDのカードを取得する
+func (s *CardService) GetCardByGitHubID(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+	card, err := s.cardRepo.FindByGitHubID(githubID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get card by id: %w", err)
+		return nil, fmt.Errorf("failed to get card by github id: %w", err)
 	}
 
 	if card == nil {
-		return nil, fmt.Errorf("card not found: id=%s", id)
+		return nil, fmt.Errorf("card not found: githubID=%s", githubID)
 	}
 
 	// GitHub APIからユーザー情報を取得して補完

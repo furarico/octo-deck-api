@@ -3,9 +3,9 @@ package repository
 import "github.com/furarico/octo-deck-api/internal/domain"
 
 type MockCardRepository struct {
-	FindAllFunc    func(githubID string) ([]domain.Card, error)
-	FindByIDFunc   func(id string) (*domain.Card, error)
-	FindMyCardFunc func(githubID string) (*domain.Card, error)
+	FindAllFunc        func(githubID string) ([]domain.Card, error)
+	FindByGitHubIDFunc func(githubID string) (*domain.Card, error)
+	FindMyCardFunc     func(githubID string) (*domain.Card, error)
 }
 
 func NewMockCardRepository() *MockCardRepository {
@@ -21,10 +21,10 @@ func (r *MockCardRepository) FindAll(githubID string) ([]domain.Card, error) {
 	return []domain.Card{}, nil
 }
 
-// FindByID は指定されたIDのカードを取得する
-func (r *MockCardRepository) FindByID(id string) (*domain.Card, error) {
-	if r.FindByIDFunc != nil {
-		return r.FindByIDFunc(id)
+// FindByGitHubID はGitHub IDでカードを取得する
+func (r *MockCardRepository) FindByGitHubID(githubID string) (*domain.Card, error) {
+	if r.FindByGitHubIDFunc != nil {
+		return r.FindByGitHubIDFunc(githubID)
 	}
 	return &domain.Card{}, nil
 }
