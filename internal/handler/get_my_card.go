@@ -9,6 +9,7 @@ import (
 // (GET /cards/me)
 func (h *Handler) GetMyCard(c *gin.Context) {
 	ctx := c.Request.Context()
+	githubClient := getGitHubClient(c)
 
 	githubID := c.GetString("github_id")
 	if githubID == "" {
@@ -18,7 +19,7 @@ func (h *Handler) GetMyCard(c *gin.Context) {
 		return
 	}
 
-	card, err := h.cardService.GetMyCard(ctx, githubID)
+	card, err := h.cardService.GetMyCard(ctx, githubID, githubClient)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
