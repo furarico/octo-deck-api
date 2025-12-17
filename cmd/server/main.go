@@ -49,7 +49,6 @@ func main() {
 
 	// cardRepository := repository.NewCardRepository(db)
 	cardRepository := repository.NewMockCardRepository()
-	// TODO: 後ほどGitHub API Clientを注入
 	cardService := service.NewCardService(cardRepository)
 	cardHandler := handler.NewHandler(cardService)
 
