@@ -1,9 +1,12 @@
 package service
 
 import (
+	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
+	"github.com/furarico/octo-deck-api/internal/github"
 )
 
 // CardRepository はServiceが必要とするRepositoryのインターフェース
@@ -24,17 +27,24 @@ func NewCardService(cardRepo CardRepository) *CardService {
 }
 
 // GetAllCards は自分が集めたカードを全て取得する
-func (s *CardService) GetAllCards(githubID string) ([]domain.Card, error) {
+func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error) {
 	cards, err := s.cardRepo.FindAll(githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all cards: %w", err)
+	}
+
+	// 各カードにGitHub情報を補完
+	for i := range cards {
+		if err := enrichCardWithGitHubInfo(ctx, &cards[i], githubClient); err != nil {
+			return nil, err
+		}
 	}
 
 	return cards, nil
 }
 
 // GetCardByID は指定されたIDのカードを取得する
-func (s *CardService) GetCardByID(id string) (*domain.Card, error) {
+func (s *CardService) GetCardByID(ctx context.Context, id string, githubClient *github.Client) (*domain.Card, error) {
 	card, err := s.cardRepo.FindByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get card by id: %w", err)
@@ -44,11 +54,16 @@ func (s *CardService) GetCardByID(id string) (*domain.Card, error) {
 		return nil, fmt.Errorf("card not found: id=%s", id)
 	}
 
+	// GitHub APIからユーザー情報を取得して補完
+	if err := enrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
+		return nil, err
+	}
+
 	return card, nil
 }
 
 // GetMyCard は自分のカードを取得する
-func (s *CardService) GetMyCard(githubID string) (*domain.Card, error) {
+func (s *CardService) GetMyCard(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
 	card, err := s.cardRepo.FindMyCard(githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get my card: %w", err)
@@ -58,5 +73,29 @@ func (s *CardService) GetMyCard(githubID string) (*domain.Card, error) {
 		return nil, fmt.Errorf("my card not found")
 	}
 
+	// GitHub APIからユーザー情報を取得して補完
+	if err := enrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
+		return nil, err
+	}
+
 	return card, nil
+}
+
+// enrichCardWithGitHubInfo はGitHub APIからユーザー情報を取得してCardに設定する
+func enrichCardWithGitHubInfo(ctx context.Context, card *domain.Card, githubClient *github.Client) error {
+	githubID, err := strconv.ParseInt(card.GithubID, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid github id: %w", err)
+	}
+
+	userInfo, err := githubClient.GetUserByID(ctx, githubID)
+	if err != nil {
+		return fmt.Errorf("failed to get github user info: %w", err)
+	}
+
+	card.UserName = userInfo.Login
+	card.FullName = userInfo.Name
+	card.IconUrl = userInfo.AvatarURL
+
+	return nil
 }
