@@ -58,7 +58,8 @@ func main() {
 	//cardRepository := repository.NewMockCardRepository()
 	cardService := service.NewCardService(cardRepository, identiconGen)
 	communityService := service.NewCommunityService(communityRepository)
-	h := handler.NewHandler(cardService, communityService)
+	statsService := service.NewStatsService()
+	h := handler.NewHandler(cardService, communityService, statsService)
 
 	// StrictServerInterface を使用してハンドラーを登録
 	strictHandler := api.NewStrictHandler(h, nil)

@@ -30,15 +30,22 @@ type CardServiceInterface interface {
 	AddCardToDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error)
 }
 
+// StatsServiceInterface はハンドラーが必要とする統計サービスのインターフェース
+type StatsServiceInterface interface {
+	GetUserStats(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error)
+}
+
 type Handler struct {
 	cardService      CardServiceInterface
 	communityService *service.CommunityService
+	statsService     StatsServiceInterface
 }
 
-func NewHandler(cardService CardServiceInterface, communityService *service.CommunityService) *Handler {
+func NewHandler(cardService CardServiceInterface, communityService *service.CommunityService, statsService StatsServiceInterface) *Handler {
 	return &Handler{
 		cardService:      cardService,
 		communityService: communityService,
+		statsService:     statsService,
 	}
 }
 
@@ -48,6 +55,10 @@ func NewCardHandler(cardService CardServiceInterface) *Handler {
 
 func NewCommunityHandler(communityService *service.CommunityService) *Handler {
 	return &Handler{communityService: communityService}
+}
+
+func NewStatsHandler(statsService StatsServiceInterface) *Handler {
+	return &Handler{statsService: statsService}
 }
 
 // getRequestContext extracts the underlying request context from gin.Context or returns ctx as-is
