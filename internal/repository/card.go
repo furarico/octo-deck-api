@@ -67,3 +67,10 @@ func (r *cardRepository) AddToCollectedCards(collectorGithubID string, cardID do
 	}
 	return r.db.Create(collectedCard).Error
 }
+
+// RemoveFromCollectedCards はカードをデッキから削除する
+func (r *cardRepository) RemoveFromCollectedCards(collectorGithubID string, cardID domain.CardID) error {
+	return r.db.
+		Where("collector_github_id = ? AND card_id = ?", collectorGithubID, uuid.UUID(cardID)).
+		Delete(&database.CollectedCard{}).Error
+}
