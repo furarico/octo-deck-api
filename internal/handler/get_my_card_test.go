@@ -78,7 +78,7 @@ func TestGetMyCard(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			repo := tt.setupMock()
 			cardService := service.NewCardService(repo)
-			cardHandler := NewHandler(cardService)
+			cardHandler := NewCardHandler(cardService)
 			router := gin.Default()
 			router.Use(func(c *gin.Context) {
 				c.Set("github_id", "test_user")

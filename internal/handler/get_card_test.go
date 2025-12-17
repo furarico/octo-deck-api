@@ -75,7 +75,7 @@ func TestGetCard(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			repo := tt.setupMock()
 			cardService := service.NewCardService(repo)
-			cardHandler := NewHandler(cardService)
+			cardHandler := NewCardHandler(cardService)
 			router := gin.Default()
 			api.RegisterHandlers(router, cardHandler)
 
