@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"time"
+
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
+	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/google/uuid"
+	"github.com/oapi-codegen/runtime/types"
 )
 
 // APIのCard型に変換する
@@ -38,4 +42,25 @@ func convertCommunityToAPI(community domain.Community) api.Community {
 		Id:   uuid.UUID(community.ID).String(),
 		Name: community.Name,
 	}
+}
+
+// ContributionStatsをAPIのUserStats型に変換する
+func convertContributionStatsToAPI(stats *github.ContributionStats) (api.UserStats, error) {
+	contributions := make([]api.Contribution, len(stats.Contributions))
+	for i, c := range stats.Contributions {
+		// DateをYYYY-MM-DD形式でパース
+		date, err := time.Parse("2006-01-02", c.Date)
+		if err != nil {
+			return api.UserStats{}, err
+		}
+
+		contributions[i] = api.Contribution{
+			Date:  types.Date{Time: date},
+			Count: int32(c.Count),
+		}
+	}
+
+	return api.UserStats{
+		Contributions: contributions,
+	}, nil
 }
