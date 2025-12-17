@@ -6,7 +6,6 @@ import (
 
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/github"
-	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,13 +35,24 @@ type StatsServiceInterface interface {
 	GetUserStats(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error)
 }
 
+// CommunityServiceInterface はハンドラーが必要とするコミュニティサービスのインターフェース
+type CommunityServiceInterface interface {
+	GetAllCommunities(githubID string) ([]domain.Community, error)
+	GetCommunityByID(id string) (*domain.Community, error)
+	GetCommunityCards(id string) ([]domain.Card, error)
+	CreateCommunity(name string) (*domain.Community, error)
+	DeleteCommunity(id string) error
+	AddCardToCommunity(communityID string, cardID string) error
+	RemoveCardFromCommunity(communityID string, cardID string) error
+}
+
 type Handler struct {
 	cardService      CardServiceInterface
-	communityService *service.CommunityService
+	communityService CommunityServiceInterface
 	statsService     StatsServiceInterface
 }
 
-func NewHandler(cardService CardServiceInterface, communityService *service.CommunityService, statsService StatsServiceInterface) *Handler {
+func NewHandler(cardService CardServiceInterface, communityService CommunityServiceInterface, statsService StatsServiceInterface) *Handler {
 	return &Handler{
 		cardService:      cardService,
 		communityService: communityService,
@@ -54,7 +64,7 @@ func NewCardHandler(cardService CardServiceInterface) *Handler {
 	return &Handler{cardService: cardService}
 }
 
-func NewCommunityHandler(communityService *service.CommunityService) *Handler {
+func NewCommunityHandler(communityService CommunityServiceInterface) *Handler {
 	return &Handler{communityService: communityService}
 }
 
