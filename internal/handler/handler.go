@@ -26,6 +26,7 @@ type CardServiceInterface interface {
 	GetAllCards(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error)
 	GetCardByGitHubID(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error)
 	GetMyCard(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error)
+	GetOrCreateMyCard(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error)
 }
 
 // StatsServiceInterface はハンドラーが必要とする統計サービスのインターフェース

@@ -51,3 +51,9 @@ func (r *cardRepository) FindMyCard(githubID string) (*domain.Card, error) {
 
 	return dbCard.ToDomain(), nil
 }
+
+// Create は新しいカードを作成する
+func (r *cardRepository) Create(card *domain.Card) error {
+	dbCard := database.CardFromDomain(card)
+	return r.db.Create(dbCard).Error
+}
