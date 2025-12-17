@@ -58,7 +58,8 @@ func main() {
 	// TODO: 後ほどGitHub API Clientを注入
 	cardService := service.NewCardService(cardRepository)
 	communityService := service.NewCommunityService(communityRepository)
-	h := handler.NewHandler(cardService, communityService)
+	statsService := service.NewStatsService()
+	h := handler.NewHandler(cardService, communityService, statsService)
 
 	// StrictServerInterface を使用してハンドラーを登録
 	strictHandler := api.NewStrictHandler(h, nil)
