@@ -8,7 +8,6 @@ import (
 
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/github"
-	"github.com/furarico/octo-deck-api/internal/identicon"
 	"gorm.io/gorm"
 )
 
@@ -22,12 +21,17 @@ type CardRepository interface {
 	RemoveFromCollectedCards(collectorGithubID string, cardID domain.CardID) error
 }
 
-type CardService struct {
-	cardRepo           CardRepository
-	identiconGenerator *identicon.Generator
+// IdenticonGenerator はServiceが必要とするIdenticon Generatorのインターフェース
+type IdenticonGenerator interface {
+	Generate(githubID string) (domain.Color, domain.Blocks, error)
 }
 
-func NewCardService(cardRepo CardRepository, identiconGenerator *identicon.Generator) *CardService {
+type CardService struct {
+	cardRepo           CardRepository
+	identiconGenerator IdenticonGenerator
+}
+
+func NewCardService(cardRepo CardRepository, identiconGenerator IdenticonGenerator) *CardService {
 	return &CardService{
 		cardRepo:           cardRepo,
 		identiconGenerator: identiconGenerator,
