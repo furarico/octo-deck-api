@@ -2,11 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/github"
+	"github.com/furarico/octo-deck-api/internal/identicon"
+	"gorm.io/gorm"
 )
 
 // CardRepository はServiceが必要とするRepositoryのインターフェース
@@ -14,15 +17,18 @@ type CardRepository interface {
 	FindAll(githubID string) ([]domain.Card, error)
 	FindByGitHubID(githubID string) (*domain.Card, error)
 	FindMyCard(githubID string) (*domain.Card, error)
+	Create(card *domain.Card) error
 }
 
 type CardService struct {
-	cardRepo CardRepository
+	cardRepo           CardRepository
+	identiconGenerator *identicon.Generator
 }
 
-func NewCardService(cardRepo CardRepository) *CardService {
+func NewCardService(cardRepo CardRepository, identiconGenerator *identicon.Generator) *CardService {
 	return &CardService{
-		cardRepo: cardRepo,
+		cardRepo:           cardRepo,
+		identiconGenerator: identiconGenerator,
 	}
 }
 
@@ -71,6 +77,34 @@ func (s *CardService) GetMyCard(ctx context.Context, githubID string, githubClie
 
 	if card == nil {
 		return nil, fmt.Errorf("my card not found")
+	}
+
+	// GitHub APIからユーザー情報を取得して補完
+	if err := enrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
+		return nil, err
+	}
+
+	return card, nil
+}
+
+// GetOrCreateMyCard は自分のカードを取得し、存在しない場合は新規作成する
+func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+	card, err := s.cardRepo.FindMyCard(githubID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("failed to get my card: %w", err)
+	}
+
+	// カードが存在しない場合は新規作成
+	if card == nil || errors.Is(err, gorm.ErrRecordNotFound) {
+		color, blocks, err := s.identiconGenerator.Generate(githubID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate identicon: %w", err)
+		}
+
+		card = domain.NewCard(githubID, color, blocks)
+		if err := s.cardRepo.Create(card); err != nil {
+			return nil, fmt.Errorf("failed to create card: %w", err)
+		}
 	}
 
 	// GitHub APIからユーザー情報を取得して補完

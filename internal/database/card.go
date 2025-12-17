@@ -35,3 +35,14 @@ func (c *Card) ToDomain() *domain.Card {
 		Blocks:   blocks,
 	}
 }
+
+func CardFromDomain(card *domain.Card) *Card {
+	blocksData, _ := json.Marshal(card.Blocks)
+
+	return &Card{
+		ID:         uuid.UUID(card.ID),
+		GithubID:   card.GithubID,
+		Color:      string(card.Color),
+		BlocksData: blocksData,
+	}
+}
