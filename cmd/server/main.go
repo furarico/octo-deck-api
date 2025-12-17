@@ -10,6 +10,7 @@ import (
 	"github.com/furarico/octo-deck-api/internal/repository"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	oapimiddleware "github.com/oapi-codegen/gin-middleware"
@@ -42,7 +43,11 @@ func main() {
 
 	router := gin.Default()
 
-	router.Use(oapimiddleware.OapiRequestValidator(spec))
+	router.Use(oapimiddleware.OapiRequestValidatorWithOptions(spec, &oapimiddleware.Options{
+		Options: openapi3filter.Options{
+			AuthenticationFunc: openapi3filter.NoopAuthenticationFunc,
+		},
+	}))
 	router.Use(authmiddleware.AuthMiddleware())
 
 	// identiconGen := identicon.NewGenerator()

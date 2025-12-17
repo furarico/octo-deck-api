@@ -1,28 +1,40 @@
 package handler
 
 import (
-	"github.com/furarico/octo-deck-api/internal/service"
+	"context"
+
+	"github.com/furarico/octo-deck-api/internal/domain"
+	"github.com/furarico/octo-deck-api/internal/github"
+	"github.com/gin-gonic/gin"
 )
 
+// CardServiceInterface はハンドラーが必要とするサービスのインターフェース
+type CardServiceInterface interface {
+	GetAllCards(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error)
+	GetCardByGitHubID(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error)
+	GetMyCard(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error)
+}
+
 type Handler struct {
-	cardService      *service.CardService
+	cardService      CardServiceInterface
 	communityService *service.CommunityService
 }
 
-// ふつうに依存を注入するコンストラクタ
-func NewHandler(cardService *service.CardService, communityService *service.CommunityService) *Handler {
+func NewHandler(cardService CardServiceInterface, communityService *service.CommunityService) *Handler {
 	return &Handler{
 		cardService:      cardService,
 		communityService: communityService,
 	}
 }
 
-// （任意）カードだけで組み立てたいケース用の簡易コンストラクタ
-func NewCardHandler(cardService *service.CardService) *Handler {
+func NewCardHandler(cardService CardServiceInterface) *Handler {
 	return &Handler{cardService: cardService}
 }
 
-// （任意）コミュニティだけで組み立てたいケース用の簡易コンストラクタ
 func NewCommunityHandler(communityService *service.CommunityService) *Handler {
 	return &Handler{communityService: communityService}
+}
+
+func getGitHubClient(c *gin.Context) *github.Client {
+	return c.MustGet("github_client").(*github.Client)
 }

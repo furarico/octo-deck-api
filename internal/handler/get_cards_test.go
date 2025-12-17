@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -8,7 +9,7 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/repository"
+	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -19,31 +20,40 @@ func TestGetCards(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		setupMock func() *repository.MockCardRepository
+		setupMock func() *service.MockCardService
 		wantCode  int
 		validate  func(t *testing.T, w *httptest.ResponseRecorder)
 	}{
 		{
 			name: "正常にカード一覧を取得できる",
-			setupMock: func() *repository.MockCardRepository {
-				return &repository.MockCardRepository{
-					FindAllFunc: func(githubID string) ([]domain.Card, error) {
+			setupMock: func() *service.MockCardService {
+				return &service.MockCardService{
+					GetAllCardsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error) {
 						return []domain.Card{
 							{
 								ID:       domain.NewCardID(),
 								GithubID: "user1",
+								UserName: "user1",
+								FullName: "User One",
+								IconUrl:  "https://example.com/user1.png",
 								Color:    "#111111",
 								Blocks:   domain.Blocks{},
 							},
 							{
 								ID:       domain.NewCardID(),
 								GithubID: "user2",
+								UserName: "user2",
+								FullName: "User Two",
+								IconUrl:  "https://example.com/user2.png",
 								Color:    "#222222",
 								Blocks:   domain.Blocks{},
 							},
 							{
 								ID:       domain.NewCardID(),
 								GithubID: "user3",
+								UserName: "user3",
+								FullName: "User Three",
+								IconUrl:  "https://example.com/user3.png",
 								Color:    "#333333",
 								Blocks:   domain.Blocks{},
 							},
@@ -67,9 +77,9 @@ func TestGetCards(t *testing.T) {
 		},
 		{
 			name: "空の結果を正常に返せる",
-			setupMock: func() *repository.MockCardRepository {
-				return &repository.MockCardRepository{
-					FindAllFunc: func(githubID string) ([]domain.Card, error) {
+			setupMock: func() *service.MockCardService {
+				return &service.MockCardService{
+					GetAllCardsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error) {
 						return []domain.Card{}, nil
 					},
 				}
@@ -93,12 +103,12 @@ func TestGetCards(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			gin.SetMode(gin.TestMode)
-			repo := tt.setupMock()
-			cardService := service.NewCardService(repo)
-			cardHandler := NewCardHandler(cardService)
+			mockService := tt.setupMock()
+			cardHandler := NewCardHandler(mockService)
 			router := gin.Default()
 			router.Use(func(c *gin.Context) {
 				c.Set("github_id", "test_user")
+				c.Set("github_client", (*github.Client)(nil))
 				c.Next()
 			})
 			api.RegisterHandlers(router, cardHandler)

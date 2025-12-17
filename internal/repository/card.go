@@ -32,10 +32,10 @@ func (r *cardRepository) FindAll(githubID string) ([]domain.Card, error) {
 	return result, nil
 }
 
-// FindByID は指定されたIDのカードを取得する
-func (r *cardRepository) FindByID(id string) (*domain.Card, error) {
+// FindByGitHubID はGitHub IDでカードを取得する
+func (r *cardRepository) FindByGitHubID(githubID string) (*domain.Card, error) {
 	var dbCard database.Card
-	if err := r.db.First(&dbCard, "id = ?", id).Error; err != nil {
+	if err := r.db.First(&dbCard, "github_id = ?", githubID).Error; err != nil {
 		return nil, err
 	}
 

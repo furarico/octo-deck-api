@@ -8,7 +8,9 @@ import (
 
 // (GET /cards/me)
 func (h *Handler) GetMyCard(c *gin.Context) {
-	// TODO: 認証情報からGitHubIDを取得する
+	ctx := c.Request.Context()
+	githubClient := getGitHubClient(c)
+
 	githubID := c.GetString("github_id")
 	if githubID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -17,7 +19,7 @@ func (h *Handler) GetMyCard(c *gin.Context) {
 		return
 	}
 
-	card, err := h.cardService.GetMyCard(githubID)
+	card, err := h.cardService.GetMyCard(ctx, githubID, githubClient)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),
