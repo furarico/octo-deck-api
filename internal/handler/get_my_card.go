@@ -27,5 +27,7 @@ func (h *Handler) GetMyCard(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, convertCardToAPI(*card))
+	c.JSON(http.StatusOK, gin.H{
+		"card": convertCardToAPI(*card),
+	})
 }
