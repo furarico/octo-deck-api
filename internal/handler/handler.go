@@ -72,7 +72,7 @@ func NewStatsHandler(statsService StatsServiceInterface) *Handler {
 	return &Handler{statsService: statsService}
 }
 
-// getRequestContext extracts the underlying request context from gin.Context or returns ctx as-is
+// gin.Contextからcontext.Contextを取得するためのヘルパー関数
 func getRequestContext(ctx context.Context) context.Context {
 	if ginCtx, ok := ctx.(*gin.Context); ok {
 		return ginCtx.Request.Context()
@@ -80,7 +80,7 @@ func getRequestContext(ctx context.Context) context.Context {
 	return ctx
 }
 
-// getGitHubClient retrieves the GitHub client from context
+// context.ContextからGitHub Clientを取得するためのヘルパー関数
 func getGitHubClient(ctx context.Context) (*github.Client, error) {
 	reqCtx := getRequestContext(ctx)
 	client, ok := reqCtx.Value(GitHubClientKey).(*github.Client)
@@ -90,7 +90,7 @@ func getGitHubClient(ctx context.Context) (*github.Client, error) {
 	return client, nil
 }
 
-// getGitHubID retrieves the GitHub ID from context
+// context.ContextからGitHub IDを取得するためのヘルパー関数
 func getGitHubID(ctx context.Context) (string, error) {
 	reqCtx := getRequestContext(ctx)
 	id, ok := reqCtx.Value(GitHubIDKey).(string)
