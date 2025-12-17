@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/furarico/octo-deck-api/internal/database"
 	"github.com/furarico/octo-deck-api/internal/domain"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -56,4 +57,13 @@ func (r *cardRepository) FindMyCard(githubID string) (*domain.Card, error) {
 func (r *cardRepository) Create(card *domain.Card) error {
 	dbCard := database.CardFromDomain(card)
 	return r.db.Create(dbCard).Error
+}
+
+// AddToCollectedCards はカードをデッキに追加する
+func (r *cardRepository) AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error {
+	collectedCard := &database.CollectedCard{
+		CollectorGithubID: collectorGithubID,
+		CardID:            uuid.UUID(cardID),
+	}
+	return r.db.Create(collectedCard).Error
 }
