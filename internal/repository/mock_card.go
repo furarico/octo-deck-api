@@ -3,10 +3,11 @@ package repository
 import "github.com/furarico/octo-deck-api/internal/domain"
 
 type MockCardRepository struct {
-	FindAllFunc        func(githubID string) ([]domain.Card, error)
-	FindByGitHubIDFunc func(githubID string) (*domain.Card, error)
-	FindMyCardFunc     func(githubID string) (*domain.Card, error)
-	CreateFunc         func(card *domain.Card) error
+	FindAllFunc             func(githubID string) ([]domain.Card, error)
+	FindByGitHubIDFunc      func(githubID string) (*domain.Card, error)
+	FindMyCardFunc          func(githubID string) (*domain.Card, error)
+	CreateFunc              func(card *domain.Card) error
+	AddToCollectedCardsFunc func(collectorGithubID string, cardID domain.CardID) error
 }
 
 func NewMockCardRepository() *MockCardRepository {
@@ -42,6 +43,14 @@ func (r *MockCardRepository) FindMyCard(githubID string) (*domain.Card, error) {
 func (r *MockCardRepository) Create(card *domain.Card) error {
 	if r.CreateFunc != nil {
 		return r.CreateFunc(card)
+	}
+	return nil
+}
+
+// AddToCollectedCards はカードをデッキに追加する
+func (r *MockCardRepository) AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error {
+	if r.AddToCollectedCardsFunc != nil {
+		return r.AddToCollectedCardsFunc(collectorGithubID, cardID)
 	}
 	return nil
 }
