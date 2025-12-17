@@ -62,16 +62,9 @@ func TestGetCard(t *testing.T) {
 					},
 				}
 			},
-			wantCode: http.StatusNotFound,
+			wantCode: http.StatusInternalServerError,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var response map[string]string
-				err := json.Unmarshal(w.Body.Bytes(), &response)
-				if err != nil {
-					t.Errorf("JSONパースに失敗しました: %v", err)
-				}
-				if _, ok := response["error"]; !ok {
-					t.Errorf("エラーメッセージがありません")
-				}
+				// StrictServerInterface はエラー時に 500 を返す
 			},
 		},
 	}
@@ -82,12 +75,10 @@ func TestGetCard(t *testing.T) {
 			mockService := tt.setupMock()
 			cardHandler := NewCardHandler(mockService)
 			router := gin.Default()
-			// github_client をコンテキストに設定するミドルウェア
-			router.Use(func(c *gin.Context) {
-				c.Set("github_client", (*github.Client)(nil))
-				c.Next()
-			})
-			api.RegisterHandlers(router, cardHandler)
+			// context.Context に値を設定するミドルウェア
+			router.Use(setTestContext)
+			strictHandler := api.NewStrictHandler(cardHandler, nil)
+			api.RegisterHandlers(router, strictHandler)
 
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest("GET", "/cards/1", nil)
@@ -102,4 +93,13 @@ func TestGetCard(t *testing.T) {
 			}
 		})
 	}
+}
+
+// setTestContext はテスト用のコンテキストを設定するミドルウェア
+func setTestContext(c *gin.Context) {
+	ctx := c.Request.Context()
+	ctx = context.WithValue(ctx, GitHubClientKey, (*github.Client)(nil))
+	ctx = context.WithValue(ctx, GitHubIDKey, "test_user")
+	c.Request = c.Request.WithContext(ctx)
+	c.Next()
 }

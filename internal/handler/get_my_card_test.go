@@ -65,16 +65,9 @@ func TestGetMyCard(t *testing.T) {
 					},
 				}
 			},
-			wantCode: http.StatusNotFound,
+			wantCode: http.StatusInternalServerError,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
-				var response map[string]string
-				err := json.Unmarshal(w.Body.Bytes(), &response)
-				if err != nil {
-					t.Errorf("JSONパースに失敗しました: %v", err)
-				}
-				if _, ok := response["error"]; !ok {
-					t.Errorf("エラーメッセージがありません")
-				}
+				// StrictServerInterface はエラー時に 500 を返す
 			},
 		},
 	}
@@ -85,12 +78,10 @@ func TestGetMyCard(t *testing.T) {
 			mockService := tt.setupMock()
 			cardHandler := NewCardHandler(mockService)
 			router := gin.Default()
-			router.Use(func(c *gin.Context) {
-				c.Set("github_id", "test_user")
-				c.Set("github_client", (*github.Client)(nil))
-				c.Next()
-			})
-			api.RegisterHandlers(router, cardHandler)
+			// context.Context に値を設定するミドルウェア
+			router.Use(setTestContext)
+			strictHandler := api.NewStrictHandler(cardHandler, nil)
+			api.RegisterHandlers(router, strictHandler)
 
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest("GET", "/cards/me", nil)

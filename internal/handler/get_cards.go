@@ -1,30 +1,28 @@
 package handler
 
 import (
-	"net/http"
+	"context"
+	"fmt"
 
 	api "github.com/furarico/octo-deck-api/generated"
-	"github.com/gin-gonic/gin"
 )
 
+// カード一覧取得
 // (GET /cards)
-func (h *Handler) GetCards(c *gin.Context) {
-	ctx := c.Request.Context()
-	githubClient := getGitHubClient(c)
-	githubID := c.GetString("github_id")
-	if githubID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "github_id not found in context",
-		})
-		return
+func (h *Handler) GetCards(ctx context.Context, request api.GetCardsRequestObject) (api.GetCardsResponseObject, error) {
+	githubClient, err := getGitHubClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unauthorized: %w", err)
+	}
+
+	githubID, err := getGitHubID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
 	cards, err := h.cardService.GetAllCards(ctx, githubID, githubClient)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+		return nil, fmt.Errorf("failed to get cards: %w", err)
 	}
 
 	cardsAPI := make([]api.Card, len(cards))
@@ -32,7 +30,5 @@ func (h *Handler) GetCards(c *gin.Context) {
 		cardsAPI[i] = convertCardToAPI(card)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"cards": cardsAPI,
-	})
+	return api.GetCards200JSONResponse{Cards: cardsAPI}, nil
 }
