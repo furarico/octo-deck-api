@@ -47,11 +47,13 @@ func main() {
 
 	// identiconGen := identicon.NewGenerator()
 
-	// cardRepository := repository.NewCardRepository(db)
-	cardRepository := repository.NewMockCardRepository()
+	cardRepository := repository.NewCardRepository(db)
+	communityRepository := repository.NewCommunityRepository(db)
+	//cardRepository := repository.NewMockCardRepository()
 	// TODO: 後ほどGitHub API Clientを注入
 	cardService := service.NewCardService(cardRepository)
-	cardHandler := handler.NewHandler(cardService)
+	communityService := service.NewCommunityService(communityRepository)
+	cardHandler := handler.NewHandler(cardService, communityService)
 
 	api.RegisterHandlers(router, cardHandler)
 
