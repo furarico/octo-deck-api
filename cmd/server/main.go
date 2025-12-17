@@ -58,9 +58,11 @@ func main() {
 	// TODO: 後ほどGitHub API Clientを注入
 	cardService := service.NewCardService(cardRepository)
 	communityService := service.NewCommunityService(communityRepository)
-	cardHandler := handler.NewHandler(cardService, communityService)
+	h := handler.NewHandler(cardService, communityService)
 
-	api.RegisterHandlers(router, cardHandler)
+	// StrictServerInterface を使用してハンドラーを登録
+	strictHandler := api.NewStrictHandler(h, nil)
+	api.RegisterHandlers(router, strictHandler)
 
 	addr := ":8080"
 	log.Printf("Server starting on %s", addr)
