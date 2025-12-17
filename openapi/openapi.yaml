@@ -375,12 +375,12 @@ servers:
   - url: http://localhost:8080
     description: Local
     variables: {}
-  - url: https://dev.api.octo-deck.furari.co
+  - url: https://dev.api.octodeck.furari.co
     description: Development
     variables: {}
-  - url: https://stg.api.octo-deck.furari.co
+  - url: https://stg.api.octodeck.furari.co
     description: Staging
     variables: {}
-  - url: https://api.octo-deck.furari.co
+  - url: https://api.octodeck.furari.co
     description: Production
     variables: {}

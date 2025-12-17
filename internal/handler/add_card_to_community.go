@@ -1,42 +1,37 @@
 package handler
 
 import (
-	"net/http"
+	"context"
+	"fmt"
 
-	"github.com/gin-gonic/gin"
+	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/google/uuid"
 )
 
 // 指定したコミュニティに自分のカードを追加
 // (POST /communities/{id}/cards)
-func (h *Handler) AddCardToCommunity(c *gin.Context, id string) {
-	ctx := c.Request.Context()
-	githubClient := getGitHubClient(c)
-	githubID := c.GetString("github_id")
-	if githubID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "github_id is missing from context",
-		})
-		return
+func (h *Handler) AddCardToCommunity(ctx context.Context, request api.AddCardToCommunityRequestObject) (api.AddCardToCommunityResponseObject, error) {
+	githubClient, err := getGitHubClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unauthorized: %w", err)
+	}
+
+	githubID, err := getGitHubID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
 	// github_idから自分のカードを取得
 	card, err := h.cardService.GetMyCard(ctx, githubID, githubClient)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "card not found",
-		})
-		return
+		return nil, fmt.Errorf("card not found: %w", err)
 	}
 
 	// コミュニティにカードを追加
 	cardID := uuid.UUID(card.ID).String()
-	if err := h.communityService.AddCardToCommunity(id, cardID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+	if err := h.communityService.AddCardToCommunity(request.Id, cardID); err != nil {
+		return nil, fmt.Errorf("failed to add card to community: %w", err)
 	}
 
-	c.JSON(http.StatusNoContent, nil)
+	return api.AddCardToCommunity200JSONResponse{Card: convertCardToAPI(*card)}, nil
 }

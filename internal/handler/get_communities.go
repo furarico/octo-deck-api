@@ -1,29 +1,23 @@
 package handler
 
 import (
-	"net/http"
+	"context"
+	"fmt"
 
 	api "github.com/furarico/octo-deck-api/generated"
-	"github.com/gin-gonic/gin"
 )
 
 // コミュニティ一覧取得
 // (GET /communities)
-func (h *Handler) GetCommunities(c *gin.Context) {
-	githubID := c.GetString("github_id")
-	if githubID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "github_id is missing from context",
-		})
-		return
+func (h *Handler) GetCommunities(ctx context.Context, request api.GetCommunitiesRequestObject) (api.GetCommunitiesResponseObject, error) {
+	githubID, err := getGitHubID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
 	communities, err := h.communityService.GetAllCommunities(githubID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+		return nil, fmt.Errorf("failed to get communities: %w", err)
 	}
 
 	communitiesAPI := make([]api.Community, len(communities))
@@ -31,5 +25,5 @@ func (h *Handler) GetCommunities(c *gin.Context) {
 		communitiesAPI[i] = convertCommunityToAPI(community)
 	}
 
-	c.JSON(http.StatusOK, communitiesAPI)
+	return api.GetCommunities200JSONResponse{Communities: communitiesAPI}, nil
 }

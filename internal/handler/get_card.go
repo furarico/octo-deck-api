@@ -1,25 +1,24 @@
 package handler
 
 import (
-	"net/http"
+	"context"
+	"fmt"
 
-	"github.com/gin-gonic/gin"
+	api "github.com/furarico/octo-deck-api/generated"
 )
 
+// 指定したカード取得
 // (GET /cards/{githubId})
-func (h *Handler) GetCard(c *gin.Context, githubId string) {
-	ctx := c.Request.Context()
-	githubClient := getGitHubClient(c)
-
-	card, err := h.cardService.GetCardByGitHubID(ctx, githubId, githubClient)
+func (h *Handler) GetCard(ctx context.Context, request api.GetCardRequestObject) (api.GetCardResponseObject, error) {
+	githubClient, err := getGitHubClient(ctx)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
-		return
+		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"card": convertCardToAPI(*card),
-	})
+	card, err := h.cardService.GetCardByGitHubID(ctx, request.GithubId, githubClient)
+	if err != nil {
+		return nil, fmt.Errorf("card not found: %w", err)
+	}
+
+	return api.GetCard200JSONResponse{Card: convertCardToAPI(*card)}, nil
 }

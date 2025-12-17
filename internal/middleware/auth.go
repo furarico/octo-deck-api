@@ -1,11 +1,13 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/furarico/octo-deck-api/internal/github"
+	"github.com/furarico/octo-deck-api/internal/handler"
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,12 +37,16 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Contextにユーザー情報とClientをセット
-		c.Set("github_id", strconv.FormatInt(user.ID, 10))
-		c.Set("github_client", ghClient)
-		c.Set("github_login", user.Login)
-		c.Set("github_name", user.Name)
-		c.Set("github_avatar_url", user.AvatarURL)
+		// context.Context にユーザー情報とClientをセット
+		ctx := c.Request.Context()
+		ctx = context.WithValue(ctx, handler.GitHubClientKey, ghClient)
+		ctx = context.WithValue(ctx, handler.GitHubIDKey, strconv.FormatInt(user.ID, 10))
+		ctx = context.WithValue(ctx, handler.GitHubLoginKey, user.Login)
+		ctx = context.WithValue(ctx, handler.GitHubNameKey, user.Name)
+		ctx = context.WithValue(ctx, handler.GitHubAvatarKey, user.AvatarURL)
+
+		// 新しいcontextでリクエストを更新
+		c.Request = c.Request.WithContext(ctx)
 
 		c.Next()
 	}

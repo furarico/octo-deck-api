@@ -1,21 +1,19 @@
 package handler
 
 import (
-	"net/http"
+	"context"
+	"fmt"
 
-	"github.com/gin-gonic/gin"
+	api "github.com/furarico/octo-deck-api/generated"
 )
 
 // 指定したコミュニティ取得
 // (GET /communities/{id})
-func (h *Handler) GetCommunity(c *gin.Context, id string) {
-	community, err := h.communityService.GetCommunityByID(id)
+func (h *Handler) GetCommunity(ctx context.Context, request api.GetCommunityRequestObject) (api.GetCommunityResponseObject, error) {
+	community, err := h.communityService.GetCommunityByID(request.Id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
-		})
-		return
+		return nil, fmt.Errorf("community not found: %w", err)
 	}
 
-	c.JSON(http.StatusOK, convertCommunityToAPI(*community))
+	return api.GetCommunity200JSONResponse{Community: convertCommunityToAPI(*community)}, nil
 }

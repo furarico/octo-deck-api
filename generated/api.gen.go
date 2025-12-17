@@ -4,11 +4,15 @@
 package api
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/oapi-codegen/runtime"
+	strictgin "github.com/oapi-codegen/runtime/strictmiddleware/gin"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
@@ -457,4 +461,706 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.POST(options.BaseURL+"/communities/:id/cards", wrapper.AddCardToCommunity)
 	router.GET(options.BaseURL+"/stats/me", wrapper.GetMyStats)
 	router.GET(options.BaseURL+"/stats/:githubId", wrapper.GetUserStats)
+}
+
+type GetCardsRequestObject struct {
+}
+
+type GetCardsResponseObject interface {
+	VisitGetCardsResponse(w http.ResponseWriter) error
+}
+
+type GetCards200JSONResponse struct {
+	Cards []Card `json:"cards"`
+}
+
+func (response GetCards200JSONResponse) VisitGetCardsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddCardToDeckRequestObject struct {
+	Body *AddCardToDeckTextRequestBody
+}
+
+type AddCardToDeckResponseObject interface {
+	VisitAddCardToDeckResponse(w http.ResponseWriter) error
+}
+
+type AddCardToDeck200JSONResponse struct {
+	Card Card `json:"card"`
+}
+
+func (response AddCardToDeck200JSONResponse) VisitAddCardToDeckResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyCardRequestObject struct {
+}
+
+type GetMyCardResponseObject interface {
+	VisitGetMyCardResponse(w http.ResponseWriter) error
+}
+
+type GetMyCard200JSONResponse struct {
+	Card Card `json:"card"`
+}
+
+func (response GetMyCard200JSONResponse) VisitGetMyCardResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveCardFromDeckRequestObject struct {
+	GithubId string `json:"githubId"`
+}
+
+type RemoveCardFromDeckResponseObject interface {
+	VisitRemoveCardFromDeckResponse(w http.ResponseWriter) error
+}
+
+type RemoveCardFromDeck200JSONResponse struct {
+	Card Card `json:"card"`
+}
+
+func (response RemoveCardFromDeck200JSONResponse) VisitRemoveCardFromDeckResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCardRequestObject struct {
+	GithubId string `json:"githubId"`
+}
+
+type GetCardResponseObject interface {
+	VisitGetCardResponse(w http.ResponseWriter) error
+}
+
+type GetCard200JSONResponse struct {
+	Card Card `json:"card"`
+}
+
+func (response GetCard200JSONResponse) VisitGetCardResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCommunitiesRequestObject struct {
+}
+
+type GetCommunitiesResponseObject interface {
+	VisitGetCommunitiesResponse(w http.ResponseWriter) error
+}
+
+type GetCommunities200JSONResponse struct {
+	Communities []Community `json:"communities"`
+}
+
+func (response GetCommunities200JSONResponse) VisitGetCommunitiesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateCommunityRequestObject struct {
+	Body *CreateCommunityTextRequestBody
+}
+
+type CreateCommunityResponseObject interface {
+	VisitCreateCommunityResponse(w http.ResponseWriter) error
+}
+
+type CreateCommunity200JSONResponse struct {
+	Community Community `json:"community"`
+}
+
+func (response CreateCommunity200JSONResponse) VisitCreateCommunityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteCommunityRequestObject struct {
+	Id string `json:"id"`
+}
+
+type DeleteCommunityResponseObject interface {
+	VisitDeleteCommunityResponse(w http.ResponseWriter) error
+}
+
+type DeleteCommunity200JSONResponse struct {
+	Community Community `json:"community"`
+}
+
+func (response DeleteCommunity200JSONResponse) VisitDeleteCommunityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCommunityRequestObject struct {
+	Id string `json:"id"`
+}
+
+type GetCommunityResponseObject interface {
+	VisitGetCommunityResponse(w http.ResponseWriter) error
+}
+
+type GetCommunity200JSONResponse struct {
+	Community Community `json:"community"`
+}
+
+func (response GetCommunity200JSONResponse) VisitGetCommunityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RemoveCardFromCommunityRequestObject struct {
+	Id string `json:"id"`
+}
+
+type RemoveCardFromCommunityResponseObject interface {
+	VisitRemoveCardFromCommunityResponse(w http.ResponseWriter) error
+}
+
+type RemoveCardFromCommunity200JSONResponse struct {
+	Card Card `json:"card"`
+}
+
+func (response RemoveCardFromCommunity200JSONResponse) VisitRemoveCardFromCommunityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetCommunityCardsRequestObject struct {
+	Id string `json:"id"`
+}
+
+type GetCommunityCardsResponseObject interface {
+	VisitGetCommunityCardsResponse(w http.ResponseWriter) error
+}
+
+type GetCommunityCards200JSONResponse struct {
+	Cards []Card `json:"cards"`
+}
+
+func (response GetCommunityCards200JSONResponse) VisitGetCommunityCardsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AddCardToCommunityRequestObject struct {
+	Id string `json:"id"`
+}
+
+type AddCardToCommunityResponseObject interface {
+	VisitAddCardToCommunityResponse(w http.ResponseWriter) error
+}
+
+type AddCardToCommunity200JSONResponse struct {
+	Card Card `json:"card"`
+}
+
+func (response AddCardToCommunity200JSONResponse) VisitAddCardToCommunityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetMyStatsRequestObject struct {
+}
+
+type GetMyStatsResponseObject interface {
+	VisitGetMyStatsResponse(w http.ResponseWriter) error
+}
+
+type GetMyStats200JSONResponse struct {
+	Stats UserStats `json:"stats"`
+}
+
+func (response GetMyStats200JSONResponse) VisitGetMyStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetUserStatsRequestObject struct {
+	GithubId string `json:"githubId"`
+}
+
+type GetUserStatsResponseObject interface {
+	VisitGetUserStatsResponse(w http.ResponseWriter) error
+}
+
+type GetUserStats200JSONResponse struct {
+	Stats UserStats `json:"stats"`
+}
+
+func (response GetUserStats200JSONResponse) VisitGetUserStatsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+// StrictServerInterface represents all server handlers.
+type StrictServerInterface interface {
+	// カード一覧取得
+	// (GET /cards)
+	GetCards(ctx context.Context, request GetCardsRequestObject) (GetCardsResponseObject, error)
+	// カードをデッキに追加
+	// (POST /cards)
+	AddCardToDeck(ctx context.Context, request AddCardToDeckRequestObject) (AddCardToDeckResponseObject, error)
+	// 自分のカード取得
+	// (GET /cards/me)
+	GetMyCard(ctx context.Context, request GetMyCardRequestObject) (GetMyCardResponseObject, error)
+	// カードをデッキから削除
+	// (DELETE /cards/{githubId})
+	RemoveCardFromDeck(ctx context.Context, request RemoveCardFromDeckRequestObject) (RemoveCardFromDeckResponseObject, error)
+	// 指定したカード取得
+	// (GET /cards/{githubId})
+	GetCard(ctx context.Context, request GetCardRequestObject) (GetCardResponseObject, error)
+	// コミュニティ一覧取得
+	// (GET /communities)
+	GetCommunities(ctx context.Context, request GetCommunitiesRequestObject) (GetCommunitiesResponseObject, error)
+	// コミュニティを作成
+	// (POST /communities)
+	CreateCommunity(ctx context.Context, request CreateCommunityRequestObject) (CreateCommunityResponseObject, error)
+	// コミュニティを削除
+	// (DELETE /communities/{id})
+	DeleteCommunity(ctx context.Context, request DeleteCommunityRequestObject) (DeleteCommunityResponseObject, error)
+	// 指定したコミュニティ取得
+	// (GET /communities/{id})
+	GetCommunity(ctx context.Context, request GetCommunityRequestObject) (GetCommunityResponseObject, error)
+	// 指定したコミュニティの自分のカードを削除
+	// (DELETE /communities/{id}/cards)
+	RemoveCardFromCommunity(ctx context.Context, request RemoveCardFromCommunityRequestObject) (RemoveCardFromCommunityResponseObject, error)
+	// 指定したコミュニティのカード一覧取得
+	// (GET /communities/{id}/cards)
+	GetCommunityCards(ctx context.Context, request GetCommunityCardsRequestObject) (GetCommunityCardsResponseObject, error)
+	// 指定したコミュニティに自分のカードを追加
+	// (POST /communities/{id}/cards)
+	AddCardToCommunity(ctx context.Context, request AddCardToCommunityRequestObject) (AddCardToCommunityResponseObject, error)
+	// 自分の統計情報取得
+	// (GET /stats/me)
+	GetMyStats(ctx context.Context, request GetMyStatsRequestObject) (GetMyStatsResponseObject, error)
+	// ユーザーの統計情報取得
+	// (GET /stats/{githubId})
+	GetUserStats(ctx context.Context, request GetUserStatsRequestObject) (GetUserStatsResponseObject, error)
+}
+
+type StrictHandlerFunc = strictgin.StrictGinHandlerFunc
+type StrictMiddlewareFunc = strictgin.StrictGinMiddlewareFunc
+
+func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareFunc) ServerInterface {
+	return &strictHandler{ssi: ssi, middlewares: middlewares}
+}
+
+type strictHandler struct {
+	ssi         StrictServerInterface
+	middlewares []StrictMiddlewareFunc
+}
+
+// GetCards operation middleware
+func (sh *strictHandler) GetCards(ctx *gin.Context) {
+	var request GetCardsRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCards(ctx, request.(GetCardsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCards")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetCardsResponseObject); ok {
+		if err := validResponse.VisitGetCardsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AddCardToDeck operation middleware
+func (sh *strictHandler) AddCardToDeck(ctx *gin.Context) {
+	var request AddCardToDeckRequestObject
+
+	data, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	body := AddCardToDeckTextRequestBody(data)
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AddCardToDeck(ctx, request.(AddCardToDeckRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AddCardToDeck")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AddCardToDeckResponseObject); ok {
+		if err := validResponse.VisitAddCardToDeckResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMyCard operation middleware
+func (sh *strictHandler) GetMyCard(ctx *gin.Context) {
+	var request GetMyCardRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMyCard(ctx, request.(GetMyCardRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMyCard")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetMyCardResponseObject); ok {
+		if err := validResponse.VisitGetMyCardResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RemoveCardFromDeck operation middleware
+func (sh *strictHandler) RemoveCardFromDeck(ctx *gin.Context, githubId string) {
+	var request RemoveCardFromDeckRequestObject
+
+	request.GithubId = githubId
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveCardFromDeck(ctx, request.(RemoveCardFromDeckRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveCardFromDeck")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(RemoveCardFromDeckResponseObject); ok {
+		if err := validResponse.VisitRemoveCardFromDeckResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCard operation middleware
+func (sh *strictHandler) GetCard(ctx *gin.Context, githubId string) {
+	var request GetCardRequestObject
+
+	request.GithubId = githubId
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCard(ctx, request.(GetCardRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCard")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetCardResponseObject); ok {
+		if err := validResponse.VisitGetCardResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCommunities operation middleware
+func (sh *strictHandler) GetCommunities(ctx *gin.Context) {
+	var request GetCommunitiesRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCommunities(ctx, request.(GetCommunitiesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCommunities")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetCommunitiesResponseObject); ok {
+		if err := validResponse.VisitGetCommunitiesResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCommunity operation middleware
+func (sh *strictHandler) CreateCommunity(ctx *gin.Context) {
+	var request CreateCommunityRequestObject
+
+	data, err := io.ReadAll(ctx.Request.Body)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	body := CreateCommunityTextRequestBody(data)
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCommunity(ctx, request.(CreateCommunityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCommunity")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(CreateCommunityResponseObject); ok {
+		if err := validResponse.VisitCreateCommunityResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteCommunity operation middleware
+func (sh *strictHandler) DeleteCommunity(ctx *gin.Context, id string) {
+	var request DeleteCommunityRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteCommunity(ctx, request.(DeleteCommunityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteCommunity")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(DeleteCommunityResponseObject); ok {
+		if err := validResponse.VisitDeleteCommunityResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCommunity operation middleware
+func (sh *strictHandler) GetCommunity(ctx *gin.Context, id string) {
+	var request GetCommunityRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCommunity(ctx, request.(GetCommunityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCommunity")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetCommunityResponseObject); ok {
+		if err := validResponse.VisitGetCommunityResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RemoveCardFromCommunity operation middleware
+func (sh *strictHandler) RemoveCardFromCommunity(ctx *gin.Context, id string) {
+	var request RemoveCardFromCommunityRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.RemoveCardFromCommunity(ctx, request.(RemoveCardFromCommunityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RemoveCardFromCommunity")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(RemoveCardFromCommunityResponseObject); ok {
+		if err := validResponse.VisitRemoveCardFromCommunityResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetCommunityCards operation middleware
+func (sh *strictHandler) GetCommunityCards(ctx *gin.Context, id string) {
+	var request GetCommunityCardsRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetCommunityCards(ctx, request.(GetCommunityCardsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCommunityCards")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetCommunityCardsResponseObject); ok {
+		if err := validResponse.VisitGetCommunityCardsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AddCardToCommunity operation middleware
+func (sh *strictHandler) AddCardToCommunity(ctx *gin.Context, id string) {
+	var request AddCardToCommunityRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.AddCardToCommunity(ctx, request.(AddCardToCommunityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AddCardToCommunity")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(AddCardToCommunityResponseObject); ok {
+		if err := validResponse.VisitAddCardToCommunityResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMyStats operation middleware
+func (sh *strictHandler) GetMyStats(ctx *gin.Context) {
+	var request GetMyStatsRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetMyStats(ctx, request.(GetMyStatsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMyStats")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetMyStatsResponseObject); ok {
+		if err := validResponse.VisitGetMyStatsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUserStats operation middleware
+func (sh *strictHandler) GetUserStats(ctx *gin.Context, githubId string) {
+	var request GetUserStatsRequestObject
+
+	request.GithubId = githubId
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.GetUserStats(ctx, request.(GetUserStatsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUserStats")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(GetUserStatsResponseObject); ok {
+		if err := validResponse.VisitGetUserStatsResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
 }

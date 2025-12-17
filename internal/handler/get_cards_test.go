@@ -110,12 +110,10 @@ func TestGetCards(t *testing.T) {
 			mockService := tt.setupMock()
 			cardHandler := NewCardHandler(mockService)
 			router := gin.Default()
-			router.Use(func(c *gin.Context) {
-				c.Set("github_id", "test_user")
-				c.Set("github_client", (*github.Client)(nil))
-				c.Next()
-			})
-			api.RegisterHandlers(router, cardHandler)
+			// context.Context に値を設定するミドルウェア
+			router.Use(setTestContext)
+			strictHandler := api.NewStrictHandler(cardHandler, nil)
+			api.RegisterHandlers(router, strictHandler)
 
 			w := httptest.NewRecorder()
 			req, _ := http.NewRequest("GET", "/cards", nil)

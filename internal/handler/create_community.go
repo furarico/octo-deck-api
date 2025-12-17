@@ -1,39 +1,25 @@
 package handler
 
 import (
-	"io"
-	"net/http"
+	"context"
+	"fmt"
 
-	"github.com/gin-gonic/gin"
+	api "github.com/furarico/octo-deck-api/generated"
 )
 
 // コミュニティを作成
 // (POST /communities)
-func (h *Handler) CreateCommunity(c *gin.Context) {
-	// リクエストボディからコミュニティ名を取得
-	body, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to read request body",
-		})
-		return
+func (h *Handler) CreateCommunity(ctx context.Context, request api.CreateCommunityRequestObject) (api.CreateCommunityResponseObject, error) {
+	if request.Body == nil || *request.Body == "" {
+		return nil, fmt.Errorf("community name is required")
 	}
 
-	name := string(body)
-	if name == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "community name is required",
-		})
-		return
-	}
+	name := string(*request.Body)
 
 	community, err := h.communityService.CreateCommunity(name)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+		return nil, fmt.Errorf("failed to create community: %w", err)
 	}
 
-	c.JSON(http.StatusCreated, convertCommunityToAPI(*community))
+	return api.CreateCommunity200JSONResponse{Community: convertCommunityToAPI(*community)}, nil
 }
