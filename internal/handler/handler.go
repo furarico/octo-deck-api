@@ -5,6 +5,7 @@ import (
 
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/github"
+	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
 

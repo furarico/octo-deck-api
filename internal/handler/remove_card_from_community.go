@@ -10,6 +10,8 @@ import (
 // 指定したコミュニティの自分のカードを削除
 // (DELETE /communities/{id}/cards)
 func (h *Handler) RemoveCardFromCommunity(c *gin.Context, id string) {
+	ctx := c.Request.Context()
+	githubClient := getGitHubClient(c)
 	githubID := c.GetString("github_id")
 	if githubID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
@@ -19,7 +21,7 @@ func (h *Handler) RemoveCardFromCommunity(c *gin.Context, id string) {
 	}
 
 	// github_idから自分のカードを取得
-	card, err := h.cardService.GetMyCard(githubID)
+	card, err := h.cardService.GetMyCard(ctx, githubID, githubClient)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "card not found",
