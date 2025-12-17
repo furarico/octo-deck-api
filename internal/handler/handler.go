@@ -5,6 +5,7 @@ import (
 
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/github"
+	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,13 +17,23 @@ type CardServiceInterface interface {
 }
 
 type Handler struct {
-	cardService CardServiceInterface
+	cardService      CardServiceInterface
+	communityService *service.CommunityService
 }
 
-func NewHandler(cardService CardServiceInterface) *Handler {
+func NewHandler(cardService CardServiceInterface, communityService *service.CommunityService) *Handler {
 	return &Handler{
-		cardService: cardService,
+		cardService:      cardService,
+		communityService: communityService,
 	}
+}
+
+func NewCardHandler(cardService CardServiceInterface) *Handler {
+	return &Handler{cardService: cardService}
+}
+
+func NewCommunityHandler(communityService *service.CommunityService) *Handler {
+	return &Handler{communityService: communityService}
 }
 
 func getGitHubClient(c *gin.Context) *github.Client {

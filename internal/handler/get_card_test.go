@@ -78,7 +78,7 @@ func TestGetCard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gin.SetMode(gin.TestMode)
 			mockService := tt.setupMock()
-			cardHandler := NewHandler(mockService)
+			cardHandler := NewCardHandler(mockService)
 			router := gin.Default()
 			// github_client をコンテキストに設定するミドルウェア
 			router.Use(func(c *gin.Context) {

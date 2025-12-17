@@ -1,17 +1,14 @@
 package database
 
 import (
-	"time"
-
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Community struct {
-	ID        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	Name      string    `gorm:"not null"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
+	ID   uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	Name string    `gorm:"not null"`
 }
 
 func (c *Community) BeforeCreate(tx *gorm.DB) error {
@@ -23,8 +20,7 @@ func (c *Community) BeforeCreate(tx *gorm.DB) error {
 
 func (c *Community) ToDomain() *domain.Community {
 	return &domain.Community{
-		ID:        domain.CommunityID(c.ID),
-		Name:      c.Name,
-		CreatedAt: c.CreatedAt,
+		ID:   domain.CommunityID(c.ID),
+		Name: c.Name,
 	}
 }
