@@ -15,3 +15,17 @@ type Contribution struct {
 type ContributionStats struct {
 	Contributions []Contribution
 }
+
+type UserStats struct {
+	Contributions      []Contribution
+	MostUsedLanguage   string
+	TotalContribution  int
+	ContributionDetail ContributionDetail
+}
+
+type ContributionDetail struct {
+	ReviewCount      int
+	CommitCount      int
+	IssueCount       int
+	PullRequestCount int
+}
