@@ -202,5 +202,10 @@ func (c *Client) GetMostUsedLanguage(ctx context.Context, login string) (string,
 		}
 	}
 
+	// 言語が見つからない場合はデフォルト値を返す
+	if mostUsedLanguage == "" {
+		return "Unknown", "#586069", nil
+	}
+
 	return mostUsedLanguage, GetLanguageColor(mostUsedLanguage), nil
 }
