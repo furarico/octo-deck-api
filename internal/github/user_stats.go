@@ -137,3 +137,75 @@ func (c *Client) GetUserStats(ctx context.Context, githubID int64) (*UserStats, 
 
 	return stats, nil
 }
+
+// GetMostUsedLanguage はユーザーの最も使用している言語を取得する
+func (c *Client) GetMostUsedLanguage(ctx context.Context, login string) (string, string, error) {
+	query := `
+		query($login: String!) {
+			user(login: $login) {
+				repositories(first: 100, ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC) {
+					nodes {
+						languages(first: 20) {
+							edges {
+								size
+								node {
+									name
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	`
+
+	variables := map[string]interface{}{
+		"login": login,
+	}
+
+	var result struct {
+		User struct {
+			Repositories struct {
+				Nodes []struct {
+					Languages struct {
+						Edges []struct {
+							Size int `json:"size"`
+							Node struct {
+								Name string `json:"name"`
+							} `json:"node"`
+						} `json:"edges"`
+					} `json:"languages"`
+				} `json:"nodes"`
+			} `json:"repositories"`
+		} `json:"user"`
+	}
+
+	if err := c.executeGraphQL(ctx, query, variables, &result); err != nil {
+		return "", "", fmt.Errorf("failed to execute GraphQL query: %w", err)
+	}
+
+	// 最も使用している言語を集計
+	languageStats := make(map[string]int)
+	for _, repo := range result.User.Repositories.Nodes {
+		for _, edge := range repo.Languages.Edges {
+			languageStats[edge.Node.Name] += edge.Size
+		}
+	}
+
+	// 最大の言語を見つける
+	mostUsedLanguage := ""
+	maxSize := 0
+	for lang, size := range languageStats {
+		if size > maxSize {
+			maxSize = size
+			mostUsedLanguage = lang
+		}
+	}
+
+	// 言語が見つからない場合はデフォルト値を返す
+	if mostUsedLanguage == "" {
+		return "Unknown", "#586069", nil
+	}
+
+	return mostUsedLanguage, GetLanguageColor(mostUsedLanguage), nil
+}

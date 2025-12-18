@@ -107,7 +107,7 @@ func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, gi
 			return nil, fmt.Errorf("failed to generate identicon: %w", err)
 		}
 
-		card = domain.NewCard(githubID, color, blocks)
+		card = domain.NewCard(githubID, color, blocks, domain.Language{})
 		if err := s.cardRepo.Create(card); err != nil {
 			return nil, fmt.Errorf("failed to create card: %w", err)
 		}
@@ -184,6 +184,17 @@ func enrichCardWithGitHubInfo(ctx context.Context, card *domain.Card, githubClie
 	card.UserName = userInfo.Login
 	card.FullName = userInfo.Name
 	card.IconUrl = userInfo.AvatarURL
+
+	// MostUsedLanguageを取得して設定
+	langName, langColor, err := githubClient.GetMostUsedLanguage(ctx, userInfo.Login)
+	if err != nil {
+		return fmt.Errorf("failed to get most used language: %w", err)
+	}
+
+	card.MostUsedLanguage = domain.Language{
+		LanguageName: langName,
+		Color:        langColor,
+	}
 
 	return nil
 }

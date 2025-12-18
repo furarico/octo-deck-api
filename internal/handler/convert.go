@@ -18,6 +18,10 @@ func convertCardToAPI(card domain.Card) api.Card {
 			Blocks: convertBlocks(card.Blocks),
 			Color:  string(card.Color),
 		},
+		MostUsedLanguage: api.Language{
+			Name:  card.MostUsedLanguage.LanguageName,
+			Color: card.MostUsedLanguage.Color,
+		},
 	}
 }
 
