@@ -27,7 +27,7 @@ func (h *Handler) GetMyStats(ctx context.Context, request api.GetMyStatsRequestO
 	}
 
 	// レスポンスに変換
-	userStats, err := convertContributionStatsToAPI(stats)
+	userStats, err := convertUserStatsToAPI(stats)
 	if err != nil {
 		return nil, err
 	}

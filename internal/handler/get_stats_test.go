@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	api "github.com/furarico/octo-deck-api/generated"
+	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
@@ -28,11 +30,11 @@ func TestGetUserStats(t *testing.T) {
 			name: "正常にユーザーの統計情報を取得できる",
 			setupMock: func() *service.MockStatsService {
 				return &service.MockStatsService{
-					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error) {
-						return &github.ContributionStats{
-							Contributions: []github.Contribution{
-								{Date: "2024-01-01", Count: 5},
-								{Date: "2024-01-02", Count: 3},
+					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Stats, error) {
+						return &domain.Stats{
+							Contributions: []domain.Contribution{
+								{Date: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), Count: 5},
+								{Date: time.Date(2024, 1, 2, 0, 0, 0, 0, time.UTC), Count: 3},
 							},
 						}, nil
 					},
@@ -56,7 +58,7 @@ func TestGetUserStats(t *testing.T) {
 			name: "統計情報の取得に失敗した場合",
 			setupMock: func() *service.MockStatsService {
 				return &service.MockStatsService{
-					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error) {
+					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Stats, error) {
 						return nil, fmt.Errorf("GitHub API error")
 					},
 				}
@@ -68,9 +70,9 @@ func TestGetUserStats(t *testing.T) {
 			name: "統計情報が空の場合",
 			setupMock: func() *service.MockStatsService {
 				return &service.MockStatsService{
-					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error) {
-						return &github.ContributionStats{
-							Contributions: []github.Contribution{},
+					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Stats, error) {
+						return &domain.Stats{
+							Contributions: []domain.Contribution{},
 						}, nil
 					},
 				}

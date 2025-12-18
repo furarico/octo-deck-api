@@ -1,11 +1,8 @@
 package handler
 
 import (
-	"time"
-
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/google/uuid"
 	"github.com/oapi-codegen/runtime/types"
 )
@@ -44,23 +41,28 @@ func convertCommunityToAPI(community domain.Community) api.Community {
 	}
 }
 
-// ContributionStatsをAPIのUserStats型に変換する
-func convertContributionStatsToAPI(stats *github.ContributionStats) (api.UserStats, error) {
+// UserStatsをAPIのUserStats型に変換する
+func convertUserStatsToAPI(stats *domain.Stats) (api.UserStats, error) {
 	contributions := make([]api.Contribution, len(stats.Contributions))
 	for i, c := range stats.Contributions {
-		// DateをYYYY-MM-DD形式でパース
-		date, err := time.Parse("2006-01-02", c.Date)
-		if err != nil {
-			return api.UserStats{}, err
-		}
-
 		contributions[i] = api.Contribution{
-			Date:  types.Date{Time: date},
+			Date:  types.Date{Time: c.Date},
 			Count: int32(c.Count),
 		}
 	}
 
 	return api.UserStats{
-		Contributions: contributions,
+		Contributions:     contributions,
+		TotalContribution: int32(stats.TotalContribution),
+		ContributionDetail: api.ContributionDetail{
+			ReviewCount:      int32(stats.ContributionDetail.ReviewCount),
+			CommitCount:      int32(stats.ContributionDetail.CommitCount),
+			IssueCount:       int32(stats.ContributionDetail.IssueCount),
+			PullRequestCount: int32(stats.ContributionDetail.PullRequestCount),
+		},
+		MostUsedLanguage: api.Language{
+			Name:  stats.MostUsedLanguage.LanguageName,
+			Color: stats.MostUsedLanguage.Color,
+		},
 	}, nil
 }
