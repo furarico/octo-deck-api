@@ -3,6 +3,8 @@ package github
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 )
 
 // GitHubIDからコントリビューション統計を取得する
@@ -68,6 +70,84 @@ func (c *Client) GetContributionStats(ctx context.Context, githubID int64) (*Con
 
 	stats := &ContributionStats{
 		Contributions: contributions,
+	}
+
+	return stats, nil
+}
+
+// GetUsersContributions は複数ユーザーの貢献データを取得する
+func (c *Client) GetUsersContributions(ctx context.Context, usernames []string, from, to time.Time) ([]UserContributionStats, error) {
+	if len(usernames) == 0 {
+		return []UserContributionStats{}, nil
+	}
+
+	// ユーザー名をクエリ形式に変換 (例: "user:octocat user:torvalds")
+	userQuery := strings.Join(func() []string {
+		result := make([]string, len(usernames))
+		for i, u := range usernames {
+			result[i] = "user:" + u
+		}
+		return result
+	}(), " ")
+
+	query := `
+		query($q: String!, $from: DateTime!, $to: DateTime!) {
+			search(query: $q, type: USER, first: 100) {
+				nodes {
+					... on User {
+						login
+						contributionsCollection(from: $from, to: $to) {
+							total: contributionCalendar {
+								totalContributions
+							}
+							commits: totalCommitContributions
+							issues: totalIssueContributions
+							prs: totalPullRequestContributions
+							reviews: totalPullRequestReviewContributions
+						}
+					}
+				}
+			}
+		}
+	`
+
+	variables := map[string]interface{}{
+		"q":    userQuery,
+		"from": from.Format(time.RFC3339),
+		"to":   to.Format(time.RFC3339),
+	}
+
+	var result struct {
+		Search struct {
+			Nodes []struct {
+				Login                   string `json:"login"`
+				ContributionsCollection struct {
+					Total struct {
+						TotalContributions int `json:"totalContributions"`
+					} `json:"total"`
+					Commits int `json:"commits"`
+					Issues  int `json:"issues"`
+					PRs     int `json:"prs"`
+					Reviews int `json:"reviews"`
+				} `json:"contributionsCollection"`
+			} `json:"nodes"`
+		} `json:"search"`
+	}
+
+	if err := c.executeGraphQL(ctx, query, variables, &result); err != nil {
+		return nil, fmt.Errorf("failed to get users contributions: %w", err)
+	}
+
+	stats := make([]UserContributionStats, 0, len(result.Search.Nodes))
+	for _, node := range result.Search.Nodes {
+		stats = append(stats, UserContributionStats{
+			Login:   node.Login,
+			Total:   node.ContributionsCollection.Total.TotalContributions,
+			Commits: node.ContributionsCollection.Commits,
+			Issues:  node.ContributionsCollection.Issues,
+			PRs:     node.ContributionsCollection.PRs,
+			Reviews: node.ContributionsCollection.Reviews,
+		})
 	}
 
 	return stats, nil

@@ -70,3 +70,14 @@ func convertUserStatsToAPI(stats *domain.Stats) (api.UserStats, error) {
 		},
 	}, nil
 }
+
+// HighlightedCardをAPIのHighlightedCard型に変換する
+func convertHighlightedCardToAPI(hc domain.HighlightedCard) api.HighlightedCard {
+	return api.HighlightedCard{
+		BestContributor:   convertCardToAPI(hc.BestContributor),
+		BestCommitter:     convertCardToAPI(hc.BestCommitter),
+		BestIssuer:        convertCardToAPI(hc.BestIssuer),
+		BestPullRequester: convertCardToAPI(hc.BestPullRequester),
+		BestReviewer:      convertCardToAPI(hc.BestReviewer),
+	}
+}

@@ -13,15 +13,19 @@ func NewCommunityID() CommunityID {
 }
 
 type Community struct {
-	ID        CommunityID
-	Name      string
-	StartedAt time.Time
-	EndedAt   time.Time
+	ID              CommunityID
+	Name            string
+	StartedAt       time.Time
+	EndedAt         time.Time
+	HighlightedCard HighlightedCard
 }
 
-func NewCommunity(name string) *Community {
+func NewCommunity(name string, startedAt time.Time, endedAt time.Time, highlightedCard HighlightedCard) *Community {
 	return &Community{
-		ID:   NewCommunityID(),
-		Name: name,
+		ID:              NewCommunityID(),
+		Name:            name,
+		StartedAt:       startedAt,
+		EndedAt:         endedAt,
+		HighlightedCard: highlightedCard,
 	}
 }

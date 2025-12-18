@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
+	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -27,19 +29,21 @@ func TestGetCommunity(t *testing.T) {
 			name: "正常にコミュニティを取得できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityByIDFunc: func(id string) (*domain.Community, error) {
+					GetCommunityWithHighlightedCardFunc: func(ctx context.Context, id string, githubClient *github.Client) (*domain.Community, *domain.HighlightedCard, error) {
 						community := &domain.Community{
 							ID:   domain.NewCommunityID(),
 							Name: "Test Community",
 						}
-						return community, nil
+						highlightedCard := &domain.HighlightedCard{}
+						return community, highlightedCard, nil
 					},
 				}
 			},
 			wantCode: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
 				var response struct {
-					Community api.Community `json:"community"`
+					Community       api.Community       `json:"community"`
+					HighlightedCard api.HighlightedCard `json:"highlightedCard"`
 				}
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				if err != nil {
@@ -54,8 +58,8 @@ func TestGetCommunity(t *testing.T) {
 			name: "コミュニティが見つからない場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityByIDFunc: func(id string) (*domain.Community, error) {
-						return nil, fmt.Errorf("community not found: id=%s", id)
+					GetCommunityWithHighlightedCardFunc: func(ctx context.Context, id string, githubClient *github.Client) (*domain.Community, *domain.HighlightedCard, error) {
+						return nil, nil, fmt.Errorf("community not found: id=%s", id)
 					},
 				}
 			},

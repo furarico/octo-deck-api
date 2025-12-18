@@ -49,7 +49,6 @@ func (r *communityRepository) FindByID(id string) (*domain.Community, error) {
 func (r *communityRepository) FindCards(id string) ([]domain.Card, error) {
 	var cards []database.Card
 	if err := r.db.
-		Preload("CommunityCards.Card").
 		Joins("JOIN community_cards cc ON cc.card_id = cards.id").
 		Where("cc.community_id = ?", id).
 		Find(&cards).Error; err != nil {

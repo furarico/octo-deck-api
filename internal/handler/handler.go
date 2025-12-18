@@ -39,6 +39,7 @@ type StatsServiceInterface interface {
 type CommunityServiceInterface interface {
 	GetAllCommunities(githubID string) ([]domain.Community, error)
 	GetCommunityByID(id string) (*domain.Community, error)
+	GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient *github.Client) (*domain.Community, *domain.HighlightedCard, error)
 	GetCommunityCards(id string) ([]domain.Card, error)
 	CreateCommunity(name string) (*domain.Community, error)
 	DeleteCommunity(id string) error
