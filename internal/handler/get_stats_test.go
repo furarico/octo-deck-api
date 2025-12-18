@@ -28,8 +28,8 @@ func TestGetUserStats(t *testing.T) {
 			name: "正常にユーザーの統計情報を取得できる",
 			setupMock: func() *service.MockStatsService {
 				return &service.MockStatsService{
-					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error) {
-						return &github.ContributionStats{
+					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*github.UserStats, error) {
+						return &github.UserStats{
 							Contributions: []github.Contribution{
 								{Date: "2024-01-01", Count: 5},
 								{Date: "2024-01-02", Count: 3},
@@ -56,7 +56,7 @@ func TestGetUserStats(t *testing.T) {
 			name: "統計情報の取得に失敗した場合",
 			setupMock: func() *service.MockStatsService {
 				return &service.MockStatsService{
-					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error) {
+					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*github.UserStats, error) {
 						return nil, fmt.Errorf("GitHub API error")
 					},
 				}
@@ -68,8 +68,8 @@ func TestGetUserStats(t *testing.T) {
 			name: "統計情報が空の場合",
 			setupMock: func() *service.MockStatsService {
 				return &service.MockStatsService{
-					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error) {
-						return &github.ContributionStats{
+					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*github.UserStats, error) {
+						return &github.UserStats{
 							Contributions: []github.Contribution{},
 						}, nil
 					},

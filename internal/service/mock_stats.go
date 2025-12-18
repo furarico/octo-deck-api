@@ -8,16 +8,16 @@ import (
 
 // MockStatsService はテスト用のモック統計サービス
 type MockStatsService struct {
-	GetUserStatsFunc func(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error)
+	GetUserStatsFunc func(ctx context.Context, githubID string, githubClient *github.Client) (*github.UserStats, error)
 }
 
 func NewMockStatsService() *MockStatsService {
 	return &MockStatsService{}
 }
 
-func (m *MockStatsService) GetUserStats(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error) {
+func (m *MockStatsService) GetUserStats(ctx context.Context, githubID string, githubClient *github.Client) (*github.UserStats, error) {
 	if m.GetUserStatsFunc != nil {
 		return m.GetUserStatsFunc(ctx, githubID, githubClient)
 	}
-	return &github.ContributionStats{}, nil
+	return &github.UserStats{}, nil
 }

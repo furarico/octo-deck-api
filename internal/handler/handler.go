@@ -32,7 +32,7 @@ type CardServiceInterface interface {
 
 // StatsServiceInterface はハンドラーが必要とする統計サービスのインターフェース
 type StatsServiceInterface interface {
-	GetUserStats(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error)
+	GetUserStats(ctx context.Context, githubID string, githubClient *github.Client) (*github.UserStats, error)
 }
 
 // CommunityServiceInterface はハンドラーが必要とするコミュニティサービスのインターフェース

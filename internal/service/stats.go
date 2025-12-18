@@ -15,15 +15,15 @@ func NewStatsService() *StatsService {
 }
 
 // GetUserStats は指定されたGitHub IDのユーザーの統計情報を取得する
-func (s *StatsService) GetUserStats(ctx context.Context, githubID string, githubClient *github.Client) (*github.ContributionStats, error) {
+func (s *StatsService) GetUserStats(ctx context.Context, githubID string, githubClient *github.Client) (*github.UserStats, error) {
 	id, err := strconv.ParseInt(githubID, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid github id: %w", err)
 	}
 
-	stats, err := githubClient.GetContributionStats(ctx, id)
+	stats, err := githubClient.GetUserStats(ctx, id)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get contribution stats: %w", err)
+		return nil, fmt.Errorf("failed to get user stats: %w", err)
 	}
 
 	return stats, nil
