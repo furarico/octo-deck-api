@@ -17,10 +17,11 @@ type ContributionStats struct {
 }
 
 type UserStats struct {
-	Contributions      []Contribution
-	MostUsedLanguage   string
-	TotalContribution  int
-	ContributionDetail ContributionDetail
+	Contributions          []Contribution
+	MostUsedLanguage       string
+	MostUsedLanguageColor  string
+	TotalContribution      int
+	ContributionDetail     ContributionDetail
 }
 
 type ContributionDetail struct {

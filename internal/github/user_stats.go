@@ -123,9 +123,10 @@ func (c *Client) GetUserStats(ctx context.Context, githubID int64) (*UserStats, 
 	}
 
 	stats := &UserStats{
-		Contributions:     contributions,
-		MostUsedLanguage:  mostUsedLanguage,
-		TotalContribution: result.User.ContributionsCollection.ContributionCalendar.TotalContributions,
+		Contributions:         contributions,
+		MostUsedLanguage:      mostUsedLanguage,
+		MostUsedLanguageColor: GetLanguageColor(mostUsedLanguage),
+		TotalContribution:     result.User.ContributionsCollection.ContributionCalendar.TotalContributions,
 		ContributionDetail: ContributionDetail{
 			ReviewCount:      result.User.ContributionsCollection.TotalPullRequestReviewContributions,
 			CommitCount:      result.User.ContributionsCollection.TotalCommitContributions,
