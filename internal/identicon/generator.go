@@ -15,6 +15,7 @@ const (
 	minHashLength  = 32
 )
 
+// Generator はIdenticonを生成する実装
 type Generator struct{}
 
 func NewGenerator() *Generator {
