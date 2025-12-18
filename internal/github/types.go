@@ -30,3 +30,13 @@ type ContributionDetail struct {
 	IssueCount       int
 	PullRequestCount int
 }
+
+// UserContributionStats は複数ユーザーの貢献統計を表す
+type UserContributionStats struct {
+	Login   string
+	Total   int
+	Commits int
+	Issues  int
+	PRs     int
+	Reviews int
+}
