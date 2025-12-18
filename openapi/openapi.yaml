@@ -348,6 +348,26 @@ components:
         count:
           type: integer
           format: int32
+    ContributionDetail:
+      type: object
+      required:
+        - reviewCount
+        - commitCount
+        - pullRequestCount
+        - issueCount
+      properties:
+        reviewCount:
+          type: integer
+          format: int32
+        commitCount:
+          type: integer
+          format: int32
+        pullRequestCount:
+          type: integer
+          format: int32
+        issueCount:
+          type: integer
+          format: int32
     HighlightedCard:
       type: object
       required:
@@ -399,11 +419,21 @@ components:
       type: object
       required:
         - contributions
+        - totalContribution
+        - mostUsedLanguage
+        - contributionDetail
       properties:
         contributions:
           type: array
           items:
             $ref: '#/components/schemas/Contribution'
+        totalContribution:
+          type: integer
+          format: int32
+        mostUsedLanguage:
+          $ref: '#/components/schemas/Language'
+        contributionDetail:
+          $ref: '#/components/schemas/ContributionDetail'
   securitySchemes:
     BearerAuth:
       type: http

@@ -42,6 +42,14 @@ type Contribution struct {
 	Date  openapi_types.Date `json:"date"`
 }
 
+// ContributionDetail defines model for ContributionDetail.
+type ContributionDetail struct {
+	CommitCount      int32 `json:"commitCount"`
+	IssueCount       int32 `json:"issueCount"`
+	PullRequestCount int32 `json:"pullRequestCount"`
+	ReviewCount      int32 `json:"reviewCount"`
+}
+
 // HighlightedCard defines model for HighlightedCard.
 type HighlightedCard struct {
 	BestCommitter     Card `json:"bestCommitter"`
@@ -71,7 +79,10 @@ type Language struct {
 
 // UserStats defines model for UserStats.
 type UserStats struct {
-	Contributions []Contribution `json:"contributions"`
+	ContributionDetail ContributionDetail `json:"contributionDetail"`
+	Contributions      []Contribution     `json:"contributions"`
+	MostUsedLanguage   Language           `json:"mostUsedLanguage"`
+	TotalContribution  int32              `json:"totalContribution"`
 }
 
 // AddCardToDeckTextBody defines parameters for AddCardToDeck.
