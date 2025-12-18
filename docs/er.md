@@ -3,8 +3,7 @@
 ```mermaid
 erDiagram
     CARDS {
-        string id PK
-        string github_id
+        string github_id PK
         datetime created_at
         string color
         json blocks_data
@@ -13,7 +12,7 @@ erDiagram
     COLLECTED_CARDS {
         string id PK
         string collector_github_id
-        string card_id FK
+        string github_id FK
         datetime collected_at
     }
 
@@ -28,7 +27,7 @@ erDiagram
     COMMUNITY_CARDS {
         string id PK
         string community_id FK
-        string card_id FK
+        string github_id FK
         datetime joined_at
     }
 
