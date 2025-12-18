@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -11,8 +13,10 @@ func NewCommunityID() CommunityID {
 }
 
 type Community struct {
-	ID   CommunityID
-	Name string
+	ID        CommunityID
+	Name      string
+	StartedAt time.Time
+	EndedAt   time.Time
 }
 
 func NewCommunity(name string) *Community {

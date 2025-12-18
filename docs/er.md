@@ -20,6 +20,8 @@ erDiagram
     COMMUNITIES {
         string id PK
         string name
+        datetime started_at
+        datetime ended_at
         datetime created_at
     }
 
