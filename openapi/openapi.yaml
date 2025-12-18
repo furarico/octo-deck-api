@@ -169,8 +169,11 @@ paths:
                 properties:
                   community:
                     $ref: '#/components/schemas/Community'
+                  highlightedCard:
+                    $ref: '#/components/schemas/HighlightedCard'
                 required:
                   - community
+                  - highlightedCard
     delete:
       operationId: deleteCommunity
       summary: コミュニティを削除
@@ -309,6 +312,7 @@ components:
         - fullName
         - iconUrl
         - identicon
+        - mostUsedLanguage
       properties:
         githubId:
           type: string
@@ -320,6 +324,8 @@ components:
           type: string
         identicon:
           $ref: '#/components/schemas/Identicon'
+        mostUsedLanguage:
+          $ref: '#/components/schemas/Language'
     Community:
       type: object
       required:
@@ -342,6 +348,25 @@ components:
         count:
           type: integer
           format: int32
+    HighlightedCard:
+      type: object
+      required:
+        - bestReviewer
+        - bestContributor
+        - bestCommitter
+        - bestPullRequester
+        - bestIssuer
+      properties:
+        bestReviewer:
+          $ref: '#/components/schemas/Card'
+        bestContributor:
+          $ref: '#/components/schemas/Card'
+        bestCommitter:
+          $ref: '#/components/schemas/Card'
+        bestPullRequester:
+          $ref: '#/components/schemas/Card'
+        bestIssuer:
+          $ref: '#/components/schemas/Card'
     Identicon:
       type: object
       required:
@@ -358,6 +383,18 @@ components:
             items:
               type: boolean
           description: 5x5の二次元配列。trueがブロック
+    Language:
+      type: object
+      required:
+        - name
+        - color
+      properties:
+        name:
+          type: string
+          description: 言語名
+        color:
+          type: string
+          description: 'カラーコード 例: #RRGGBB'
     UserStats:
       type: object
       required:

@@ -22,11 +22,12 @@ const (
 
 // Card defines model for Card.
 type Card struct {
-	FullName  string    `json:"fullName"`
-	GithubId  string    `json:"githubId"`
-	IconUrl   string    `json:"iconUrl"`
-	Identicon Identicon `json:"identicon"`
-	UserName  string    `json:"userName"`
+	FullName         string    `json:"fullName"`
+	GithubId         string    `json:"githubId"`
+	IconUrl          string    `json:"iconUrl"`
+	Identicon        Identicon `json:"identicon"`
+	MostUsedLanguage Language  `json:"mostUsedLanguage"`
+	UserName         string    `json:"userName"`
 }
 
 // Community defines model for Community.
@@ -41,6 +42,15 @@ type Contribution struct {
 	Date  openapi_types.Date `json:"date"`
 }
 
+// HighlightedCard defines model for HighlightedCard.
+type HighlightedCard struct {
+	BestCommitter     Card `json:"bestCommitter"`
+	BestContributor   Card `json:"bestContributor"`
+	BestIssuer        Card `json:"bestIssuer"`
+	BestPullRequester Card `json:"bestPullRequester"`
+	BestReviewer      Card `json:"bestReviewer"`
+}
+
 // Identicon defines model for Identicon.
 type Identicon struct {
 	// Blocks 5x5の二次元配列。trueがブロック
@@ -48,6 +58,15 @@ type Identicon struct {
 
 	// Color カラーコード 例: #RRGGBB
 	Color string `json:"color"`
+}
+
+// Language defines model for Language.
+type Language struct {
+	// Color カラーコード 例: #RRGGBB
+	Color string `json:"color"`
+
+	// Name 言語名
+	Name string `json:"name"`
 }
 
 // UserStats defines model for UserStats.
@@ -621,7 +640,8 @@ type GetCommunityResponseObject interface {
 }
 
 type GetCommunity200JSONResponse struct {
-	Community Community `json:"community"`
+	Community       Community       `json:"community"`
+	HighlightedCard HighlightedCard `json:"highlightedCard"`
 }
 
 func (response GetCommunity200JSONResponse) VisitGetCommunityResponse(w http.ResponseWriter) error {
