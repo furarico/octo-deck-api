@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
 )
@@ -63,8 +62,8 @@ func (s *CommunityService) GetCommunityCards(id string) ([]domain.Card, error) {
 }
 
 // CreateCommunity はコミュニティを作成する
-func (s *CommunityService) CreateCommunity(name string, startedAt time.Time, endedAt time.Time, bestContribute domain.BestContribute) (*domain.Community, error) {
-	community := domain.NewCommunity(name, startedAt, endedAt, bestContribute)
+func (s *CommunityService) CreateCommunity(name string) (*domain.Community, error) {
+	community := domain.NewCommunity(name)
 
 	if err := s.communityRepo.Create(community); err != nil {
 		return nil, fmt.Errorf("failed to create community: %w", err)
