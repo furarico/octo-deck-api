@@ -19,20 +19,22 @@ type Color string
 type Blocks [5][5]bool
 
 type Card struct {
-	ID       CardID
-	GithubID string
-	UserName string
-	FullName string
-	IconUrl  string
-	Color    Color
-	Blocks   Blocks
+	ID               CardID
+	GithubID         string
+	UserName         string
+	FullName         string
+	IconUrl          string
+	Color            Color
+	Blocks           Blocks
+	MostUsedLanguage Language
 }
 
-func NewCard(githubID string, color Color, blocks Blocks) *Card {
+func NewCard(githubID string, color Color, blocks Blocks, mostUsedLanguage Language) *Card {
 	return &Card{
-		ID:       NewCardID(),
-		GithubID: githubID,
-		Color:    color,
-		Blocks:   blocks,
+		ID:               NewCardID(),
+		GithubID:         githubID,
+		Color:            color,
+		Blocks:           blocks,
+		MostUsedLanguage: mostUsedLanguage,
 	}
 }
