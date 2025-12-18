@@ -44,8 +44,8 @@ func convertCommunityToAPI(community domain.Community) api.Community {
 	}
 }
 
-// ContributionStatsをAPIのUserStats型に変換する
-func convertContributionStatsToAPI(stats *github.ContributionStats) (api.UserStats, error) {
+// UserStatsをAPIのUserStats型に変換する
+func convertUserStatsToAPI(stats *github.UserStats) (api.UserStats, error) {
 	contributions := make([]api.Contribution, len(stats.Contributions))
 	for i, c := range stats.Contributions {
 		// DateをYYYY-MM-DD形式でパース
@@ -61,6 +61,17 @@ func convertContributionStatsToAPI(stats *github.ContributionStats) (api.UserSta
 	}
 
 	return api.UserStats{
-		Contributions: contributions,
+		Contributions:     contributions,
+		TotalContribution: int32(stats.TotalContribution),
+		ContributionDetail: api.ContributionDetail{
+			ReviewCount:      int32(stats.ContributionDetail.ReviewCount),
+			CommitCount:      int32(stats.ContributionDetail.CommitCount),
+			IssueCount:       int32(stats.ContributionDetail.IssueCount),
+			PullRequestCount: int32(stats.ContributionDetail.PullRequestCount),
+		},
+		MostUsedLanguage: api.Language{
+			Name:  stats.MostUsedLanguage,
+			Color: stats.MostUsedLanguageColor,
+		},
 	}, nil
 }
