@@ -21,7 +21,7 @@ func (r *communityRepository) FindAll(githubID string) ([]domain.Community, erro
 	if err := r.db.
 		Model(&database.Community{}).
 		Joins("JOIN community_cards cc ON cc.community_id = communities.id").
-		Joins("JOIN cards c ON c.id = cc.card_id AND c.github_id = ?", githubID).
+		Where("cc.github_id = ?", githubID).
 		Distinct().
 		Find(&communities).Error; err != nil {
 		return nil, err
@@ -49,8 +49,7 @@ func (r *communityRepository) FindByID(id string) (*domain.Community, error) {
 func (r *communityRepository) FindCards(id string) ([]domain.Card, error) {
 	var cards []database.Card
 	if err := r.db.
-		Preload("CommunityCards.Card").
-		Joins("JOIN community_cards cc ON cc.card_id = cards.id").
+		Joins("JOIN community_cards cc ON cc.github_id = cards.github_id").
 		Where("cc.community_id = ?", id).
 		Find(&cards).Error; err != nil {
 		return nil, err
@@ -80,19 +79,19 @@ func (r *communityRepository) Delete(id string) error {
 }
 
 // AddCard はコミュニティにカードを追加する
-func (r *communityRepository) AddCard(communityID string, cardID string) error {
+func (r *communityRepository) AddCard(communityID string, githubID string) error {
 	communityCard := &database.CommunityCard{
 		CommunityID: parseUUID(communityID),
-		CardID:      parseUUID(cardID),
+		GithubID:    githubID,
 	}
 
 	return r.db.Create(communityCard).Error
 }
 
 // RemoveCard はコミュニティからカードを削除する
-func (r *communityRepository) RemoveCard(communityID string, cardID string) error {
+func (r *communityRepository) RemoveCard(communityID string, githubID string) error {
 	return r.db.
-		Where("community_id = ? AND card_id = ?", communityID, cardID).
+		Where("community_id = ? AND github_id = ?", communityID, githubID).
 		Delete(&database.CommunityCard{}).Error
 }
 

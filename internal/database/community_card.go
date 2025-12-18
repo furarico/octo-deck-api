@@ -29,7 +29,7 @@ func (cc *CommunityCard) ToDomain() *domain.CommunityCard {
 	return &domain.CommunityCard{
 		ID:          domain.CommunityCardID(cc.ID),
 		CommunityID: domain.CommunityID(cc.CommunityID),
-		GithubID:    cc.Card.GithubID,
+		GithubID:    cc.GithubID,
 		JoinedAt:    cc.JoinedAt,
 	}
 }

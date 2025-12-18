@@ -20,11 +20,11 @@ func TestRemoveCardFromCommunity(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	tests := []struct {
-		name              string
-		setupCardMock     func() *service.MockCardService
+		name               string
+		setupCardMock      func() *service.MockCardService
 		setupCommunityMock func() *service.MockCommunityService
-		wantCode          int
-		validate          func(t *testing.T, w *httptest.ResponseRecorder)
+		wantCode           int
+		validate           func(t *testing.T, w *httptest.ResponseRecorder)
 	}{
 		{
 			name: "正常にコミュニティからカードを削除できる",
@@ -32,7 +32,6 @@ func TestRemoveCardFromCommunity(t *testing.T) {
 				return &service.MockCardService{
 					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
 						return &domain.Card{
-							ID:       domain.NewCardID(),
 							GithubID: "test_user",
 							UserName: "test_user",
 							FullName: "Test User",
@@ -85,7 +84,6 @@ func TestRemoveCardFromCommunity(t *testing.T) {
 				return &service.MockCardService{
 					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
 						return &domain.Card{
-							ID:       domain.NewCardID(),
 							GithubID: "test_user",
 							UserName: "test_user",
 							FullName: "Test User",

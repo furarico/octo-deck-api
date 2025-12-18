@@ -31,7 +31,6 @@ func TestGetCards(t *testing.T) {
 					GetAllCardsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error) {
 						return []domain.Card{
 							{
-								ID:       domain.NewCardID(),
 								GithubID: "user1",
 								UserName: "user1",
 								FullName: "User One",
@@ -40,7 +39,6 @@ func TestGetCards(t *testing.T) {
 								Blocks:   domain.Blocks{},
 							},
 							{
-								ID:       domain.NewCardID(),
 								GithubID: "user2",
 								UserName: "user2",
 								FullName: "User Two",
@@ -49,7 +47,6 @@ func TestGetCards(t *testing.T) {
 								Blocks:   domain.Blocks{},
 							},
 							{
-								ID:       domain.NewCardID(),
 								GithubID: "user3",
 								UserName: "user3",
 								FullName: "User Three",

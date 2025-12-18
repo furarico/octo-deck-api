@@ -3,11 +3,12 @@ package repository
 import "github.com/furarico/octo-deck-api/internal/domain"
 
 type MockCardRepository struct {
-	FindAllFunc             func(githubID string) ([]domain.Card, error)
-	FindByGitHubIDFunc      func(githubID string) (*domain.Card, error)
-	FindMyCardFunc          func(githubID string) (*domain.Card, error)
-	CreateFunc              func(card *domain.Card) error
-	AddToCollectedCardsFunc func(collectorGithubID string, cardID domain.CardID) error
+	FindAllFunc                  func(githubID string) ([]domain.Card, error)
+	FindByGitHubIDFunc           func(githubID string) (*domain.Card, error)
+	FindMyCardFunc               func(githubID string) (*domain.Card, error)
+	CreateFunc                   func(card *domain.Card) error
+	AddToCollectedCardsFunc      func(collectorGithubID string, githubID string) error
+	RemoveFromCollectedCardsFunc func(collectorGithubID string, githubID string) error
 }
 
 func NewMockCardRepository() *MockCardRepository {
@@ -48,9 +49,17 @@ func (r *MockCardRepository) Create(card *domain.Card) error {
 }
 
 // AddToCollectedCards はカードをデッキに追加する
-func (r *MockCardRepository) AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error {
+func (r *MockCardRepository) AddToCollectedCards(collectorGithubID string, githubID string) error {
 	if r.AddToCollectedCardsFunc != nil {
-		return r.AddToCollectedCardsFunc(collectorGithubID, cardID)
+		return r.AddToCollectedCardsFunc(collectorGithubID, githubID)
+	}
+	return nil
+}
+
+// RemoveFromCollectedCards はカードをデッキから削除する
+func (r *MockCardRepository) RemoveFromCollectedCards(collectorGithubID string, githubID string) error {
+	if r.RemoveFromCollectedCardsFunc != nil {
+		return r.RemoveFromCollectedCardsFunc(collectorGithubID, githubID)
 	}
 	return nil
 }

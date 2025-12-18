@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	api "github.com/furarico/octo-deck-api/generated"
-	"github.com/google/uuid"
 )
 
 // 指定したコミュニティの自分のカードを削除
@@ -28,8 +27,7 @@ func (h *Handler) RemoveCardFromCommunity(ctx context.Context, request api.Remov
 	}
 
 	// コミュニティからカードを削除
-	cardID := uuid.UUID(card.ID).String()
-	if err := h.communityService.RemoveCardFromCommunity(request.Id, cardID); err != nil {
+	if err := h.communityService.RemoveCardFromCommunity(request.Id, card.GithubID); err != nil {
 		return nil, fmt.Errorf("failed to remove card from community: %w", err)
 	}
 

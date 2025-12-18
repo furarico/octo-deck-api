@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	api "github.com/furarico/octo-deck-api/generated"
-	"github.com/google/uuid"
 )
 
 // 指定したコミュニティに自分のカードを追加
@@ -28,8 +27,7 @@ func (h *Handler) AddCardToCommunity(ctx context.Context, request api.AddCardToC
 	}
 
 	// コミュニティにカードを追加
-	cardID := uuid.UUID(card.ID).String()
-	if err := h.communityService.AddCardToCommunity(request.Id, cardID); err != nil {
+	if err := h.communityService.AddCardToCommunity(request.Id, card.GithubID); err != nil {
 		return nil, fmt.Errorf("failed to add card to community: %w", err)
 	}
 

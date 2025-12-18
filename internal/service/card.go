@@ -17,8 +17,8 @@ type CardRepository interface {
 	FindByGitHubID(githubID string) (*domain.Card, error)
 	FindMyCard(githubID string) (*domain.Card, error)
 	Create(card *domain.Card) error
-	AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error
-	RemoveFromCollectedCards(collectorGithubID string, cardID domain.CardID) error
+	AddToCollectedCards(collectorGithubID string, githubID string) error
+	RemoveFromCollectedCards(collectorGithubID string, githubID string) error
 }
 
 // IdenticonGenerator はServiceが必要とするIdenticon Generatorのインターフェース
@@ -133,7 +133,7 @@ func (s *CardService) AddCardToDeck(ctx context.Context, collectorGithubID strin
 	}
 
 	// デッキに追加
-	if err := s.cardRepo.AddToCollectedCards(collectorGithubID, card.ID); err != nil {
+	if err := s.cardRepo.AddToCollectedCards(collectorGithubID, card.GithubID); err != nil {
 		return nil, fmt.Errorf("failed to add card to deck: %w", err)
 	}
 
@@ -157,7 +157,7 @@ func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID 
 	}
 
 	// デッキから削除
-	if err := s.cardRepo.RemoveFromCollectedCards(collectorGithubID, card.ID); err != nil {
+	if err := s.cardRepo.RemoveFromCollectedCards(collectorGithubID, card.GithubID); err != nil {
 		return nil, fmt.Errorf("failed to remove card from deck: %w", err)
 	}
 

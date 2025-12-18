@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/furarico/octo-deck-api/internal/database"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -60,17 +59,17 @@ func (r *cardRepository) Create(card *domain.Card) error {
 }
 
 // AddToCollectedCards はカードをデッキに追加する
-func (r *cardRepository) AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error {
+func (r *cardRepository) AddToCollectedCards(collectorGithubID string, githubID string) error {
 	collectedCard := &database.CollectedCard{
 		CollectorGithubID: collectorGithubID,
-		CardID:            uuid.UUID(cardID),
+		GithubID:          githubID,
 	}
 	return r.db.Create(collectedCard).Error
 }
 
 // RemoveFromCollectedCards はカードをデッキから削除する
-func (r *cardRepository) RemoveFromCollectedCards(collectorGithubID string, cardID domain.CardID) error {
+func (r *cardRepository) RemoveFromCollectedCards(collectorGithubID string, githubID string) error {
 	return r.db.
-		Where("collector_github_id = ? AND card_id = ?", collectorGithubID, uuid.UUID(cardID)).
+		Where("collector_github_id = ? AND github_id = ?", collectorGithubID, githubID).
 		Delete(&database.CollectedCard{}).Error
 }

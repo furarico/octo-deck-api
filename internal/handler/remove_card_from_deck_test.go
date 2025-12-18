@@ -32,7 +32,6 @@ func TestRemoveCardFromDeck(t *testing.T) {
 				return &service.MockCardService{
 					RemoveCardFromDeckFunc: func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error) {
 						return &domain.Card{
-							ID:       domain.NewCardID(),
 							GithubID: targetGithubID,
 							UserName: "target_user",
 							FullName: "Target User",

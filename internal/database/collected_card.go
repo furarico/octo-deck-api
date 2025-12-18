@@ -28,6 +28,6 @@ func (cc *CollectedCard) ToDomain() *domain.CollectedCard {
 	return &domain.CollectedCard{
 		ID:                domain.CollectedCardID(cc.ID),
 		CollectorGithubID: cc.CollectorGithubID,
-		GithubID:          cc.Card.GithubID,
+		GithubID:          cc.GithubID,
 	}
 }

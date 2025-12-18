@@ -31,7 +31,6 @@ func TestGetCard(t *testing.T) {
 				return &service.MockCardService{
 					GetCardByGitHubIDFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
 						return &domain.Card{
-							ID:       domain.NewCardID(),
 							GithubID: "john_doe",
 							UserName: "john_doe",
 							FullName: "John Doe",

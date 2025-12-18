@@ -30,7 +30,6 @@ func TestGetCommunityCards(t *testing.T) {
 					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
 						return []domain.Card{
 							{
-								ID:       domain.NewCardID(),
 								GithubID: "user1",
 								UserName: "user1",
 								FullName: "User One",
@@ -39,7 +38,6 @@ func TestGetCommunityCards(t *testing.T) {
 								Blocks:   domain.Blocks{},
 							},
 							{
-								ID:       domain.NewCardID(),
 								GithubID: "user2",
 								UserName: "user2",
 								FullName: "User Two",
