@@ -15,15 +15,15 @@ func NewCommunityCardID() CommunityCardID {
 type CommunityCard struct {
 	ID          CommunityCardID
 	CommunityID CommunityID
-	CardID      CardID
+	GithubID    string
 	JoinedAt    time.Time
 }
 
-func NewCommunityCard(communityID CommunityID, cardID CardID) *CommunityCard {
+func NewCommunityCard(communityID CommunityID, githubID string) *CommunityCard {
 	return &CommunityCard{
 		ID:          NewCommunityCardID(),
 		CommunityID: communityID,
-		CardID:      cardID,
+		GithubID:    githubID,
 		JoinedAt:    time.Now(),
 	}
 }
