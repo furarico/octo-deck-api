@@ -11,10 +11,10 @@ import (
 type CommunityCard struct {
 	ID          uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	CommunityID uuid.UUID `gorm:"type:uuid;not null"`
-	CardID      uuid.UUID `gorm:"type:uuid;not null"`
+	GithubID    string    `gorm:"not null"`
 	JoinedAt    time.Time `gorm:"autoCreateTime"`
 
-	Card      Card      `gorm:"foreignKey:CardID"`
+	Card      Card      `gorm:"foreignKey:GithubID"`
 	Community Community `gorm:"foreignKey:CommunityID"`
 }
 
@@ -29,7 +29,7 @@ func (cc *CommunityCard) ToDomain() *domain.CommunityCard {
 	return &domain.CommunityCard{
 		ID:          domain.CommunityCardID(cc.ID),
 		CommunityID: domain.CommunityID(cc.CommunityID),
-		CardID:      domain.CardID(cc.CardID),
+		GithubID:    cc.Card.GithubID,
 		JoinedAt:    cc.JoinedAt,
 	}
 }

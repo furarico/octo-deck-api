@@ -11,10 +11,10 @@ import (
 type CollectedCard struct {
 	ID                uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	CollectorGithubID string    `gorm:"not null"`
-	CardID            uuid.UUID `gorm:"type:uuid;not null"`
+	GithubID          string    `gorm:"not null"`
 	CollectedAt       time.Time `gorm:"autoCreateTime"`
 
-	Card Card `gorm:"foreignKey:CardID"`
+	Card Card `gorm:"foreignKey:GithubID"`
 }
 
 func (cc *CollectedCard) BeforeCreate(tx *gorm.DB) error {
@@ -28,6 +28,6 @@ func (cc *CollectedCard) ToDomain() *domain.CollectedCard {
 	return &domain.CollectedCard{
 		ID:                domain.CollectedCardID(cc.ID),
 		CollectorGithubID: cc.CollectorGithubID,
-		CardID:            domain.CardID(cc.CardID),
+		GithubID:          cc.Card.GithubID,
 	}
 }
