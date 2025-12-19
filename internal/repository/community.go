@@ -47,6 +47,70 @@ func (r *communityRepository) FindByID(id string) (*domain.Community, error) {
 	return community.ToDomain(), nil
 }
 
+// FindByIDWithHighlightedCard は指定されたコミュニティIDの情報をHighlightedCard付きで取得する
+func (r *communityRepository) FindByIDWithHighlightedCard(id string) (*domain.Community, error) {
+	var community database.Community
+	if err := r.db.
+		Preload("BestContributorCard").
+		Preload("BestCommitterCard").
+		Preload("BestIssuerCard").
+		Preload("BestPullRequesterCard").
+		Preload("BestReviewerCard").
+		First(&community, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+
+	return community.ToDomain(), nil
+}
+
+// UpdateHighlightedCard はコミュニティのHighlightedCardを更新する
+func (r *communityRepository) UpdateHighlightedCard(communityID string, highlightedCard *domain.HighlightedCard) error {
+	communityUUID, err := parseUUID(communityID)
+	if err != nil {
+		return fmt.Errorf("invalid community id: %w", err)
+	}
+
+	updates := map[string]interface{}{}
+
+	// 各ベストカードのIDを設定（空のカードはnilにする）
+	if highlightedCard.BestContributor.GithubID != "" {
+		cardID := uuid.UUID(highlightedCard.BestContributor.ID)
+		updates["best_contributor_card_id"] = &cardID
+	} else {
+		updates["best_contributor_card_id"] = nil
+	}
+
+	if highlightedCard.BestCommitter.GithubID != "" {
+		cardID := uuid.UUID(highlightedCard.BestCommitter.ID)
+		updates["best_committer_card_id"] = &cardID
+	} else {
+		updates["best_committer_card_id"] = nil
+	}
+
+	if highlightedCard.BestIssuer.GithubID != "" {
+		cardID := uuid.UUID(highlightedCard.BestIssuer.ID)
+		updates["best_issuer_card_id"] = &cardID
+	} else {
+		updates["best_issuer_card_id"] = nil
+	}
+
+	if highlightedCard.BestPullRequester.GithubID != "" {
+		cardID := uuid.UUID(highlightedCard.BestPullRequester.ID)
+		updates["best_pull_requester_card_id"] = &cardID
+	} else {
+		updates["best_pull_requester_card_id"] = nil
+	}
+
+	if highlightedCard.BestReviewer.GithubID != "" {
+		cardID := uuid.UUID(highlightedCard.BestReviewer.ID)
+		updates["best_reviewer_card_id"] = &cardID
+	} else {
+		updates["best_reviewer_card_id"] = nil
+	}
+
+	return r.db.Model(&database.Community{}).Where("id = ?", communityUUID).Updates(updates).Error
+}
+
 // FindCards は指定したコミュニティIDのカード一覧を取得する
 func (r *communityRepository) FindCards(id string) ([]domain.Card, error) {
 	var cards []database.Card

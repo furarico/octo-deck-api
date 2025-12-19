@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -28,7 +27,7 @@ func TestGetCommunity(t *testing.T) {
 			name: "正常にコミュニティを取得できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityWithHighlightedCardFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
+					GetCommunityWithHighlightedCardFunc: func(id string) (*domain.Community, *domain.HighlightedCard, error) {
 						community := &domain.Community{
 							ID:   domain.NewCommunityID(),
 							Name: "Test Community",
@@ -57,7 +56,7 @@ func TestGetCommunity(t *testing.T) {
 			name: "コミュニティが見つからない場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityWithHighlightedCardFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
+					GetCommunityWithHighlightedCardFunc: func(id string) (*domain.Community, *domain.HighlightedCard, error) {
 						return nil, nil, fmt.Errorf("community not found: id=%s", id)
 					},
 				}

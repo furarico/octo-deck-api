@@ -12,6 +12,7 @@ import (
 
 	"github.com/furarico/octo-deck-api/internal/database"
 	"github.com/furarico/octo-deck-api/internal/domain"
+	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/identicon"
 	"github.com/furarico/octo-deck-api/internal/repository"
 	"github.com/joho/godotenv"
@@ -24,6 +25,7 @@ type GitHubMember struct {
 	NodeID    string `json:"node_id"`
 	Login     string `json:"login"`
 	AvatarURL string `json:"avatar_url"`
+	FullName  string `json:"full_name"`
 }
 
 func main() {
@@ -53,6 +55,7 @@ func main() {
 	// リポジトリとジェネレーターの初期化
 	cardRepo := repository.NewCardRepository(db)
 	identiconGen := identicon.NewGenerator()
+	githubClient := github.NewClient(token)
 
 	// Organization メンバー一覧を取得
 	members, err := fetchOrgMembers(token, orgName)
@@ -61,6 +64,19 @@ func main() {
 	}
 
 	log.Printf("Found %d members in organization %s", len(members), orgName)
+
+	// 全メンバーのログイン名を収集してMostUsedLanguageを一括取得
+	logins := make([]string, len(members))
+	for i, member := range members {
+		logins[i] = member.Login
+	}
+
+	log.Printf("Fetching most used languages for %d members...", len(logins))
+	languageMap, err := githubClient.GetMostUsedLanguages(context.Background(), logins)
+	if err != nil {
+		log.Printf("Warning: Failed to fetch languages: %v (continuing with empty languages)", err)
+		languageMap = make(map[string]github.LanguageInfo)
+	}
 
 	// 各メンバーのカードを作成
 	created := 0
@@ -94,8 +110,15 @@ func main() {
 			continue
 		}
 
+		// MostUsedLanguageを取得
+		langInfo := languageMap[member.Login]
+		mostUsedLanguage := domain.Language{
+			LanguageName: langInfo.Name,
+			Color:        langInfo.Color,
+		}
+
 		// カード作成
-		card := domain.NewCard(githubID, member.NodeID, color, blocks, domain.Language{})
+		card := domain.NewCard(githubID, member.NodeID, color, blocks, mostUsedLanguage, member.Login, member.FullName, member.AvatarURL)
 		if err := cardRepo.Create(card); err != nil {
 			log.Printf("Failed to create card for %s (ID: %s): %v", member.Login, githubID, err)
 			failed++

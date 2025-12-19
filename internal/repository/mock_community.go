@@ -3,13 +3,15 @@ package repository
 import "github.com/furarico/octo-deck-api/internal/domain"
 
 type MockCommunityRepository struct {
-	FindAllFunc     func(githubID string) ([]domain.Community, error)
-	FindByIDFunc    func(id string) (*domain.Community, error)
-	FindCardsFunc   func(id string) ([]domain.Card, error)
-	CreateFunc      func(community *domain.Community) error
-	DeleteFunc      func(id string) error
-	AddCardFunc     func(communityID string, cardID string) error
-	RemoveCardFunc  func(communityID string, cardID string) error
+	FindAllFunc                    func(githubID string) ([]domain.Community, error)
+	FindByIDFunc                   func(id string) (*domain.Community, error)
+	FindByIDWithHighlightedCardFunc func(id string) (*domain.Community, error)
+	FindCardsFunc                  func(id string) ([]domain.Card, error)
+	CreateFunc                     func(community *domain.Community) error
+	DeleteFunc                     func(id string) error
+	AddCardFunc                    func(communityID string, cardID string) error
+	RemoveCardFunc                 func(communityID string, cardID string) error
+	UpdateHighlightedCardFunc      func(communityID string, highlightedCard *domain.HighlightedCard) error
 }
 
 func NewMockCommunityRepository() *MockCommunityRepository {
@@ -68,6 +70,22 @@ func (r *MockCommunityRepository) AddCard(communityID string, cardID string) err
 func (r *MockCommunityRepository) RemoveCard(communityID string, cardID string) error {
 	if r.RemoveCardFunc != nil {
 		return r.RemoveCardFunc(communityID, cardID)
+	}
+	return nil
+}
+
+// FindByIDWithHighlightedCard は指定されたIDのコミュニティをHighlightedCard付きで取得する
+func (r *MockCommunityRepository) FindByIDWithHighlightedCard(id string) (*domain.Community, error) {
+	if r.FindByIDWithHighlightedCardFunc != nil {
+		return r.FindByIDWithHighlightedCardFunc(id)
+	}
+	return nil, nil
+}
+
+// UpdateHighlightedCard はコミュニティのHighlightedCardを更新する
+func (r *MockCommunityRepository) UpdateHighlightedCard(communityID string, highlightedCard *domain.HighlightedCard) error {
+	if r.UpdateHighlightedCardFunc != nil {
+		return r.UpdateHighlightedCardFunc(communityID, highlightedCard)
 	}
 	return nil
 }
