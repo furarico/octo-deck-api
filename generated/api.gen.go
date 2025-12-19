@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/oapi-codegen/runtime"
@@ -32,8 +33,10 @@ type Card struct {
 
 // Community defines model for Community.
 type Community struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	EndDateTime   time.Time `json:"endDateTime"`
+	Id            string    `json:"id"`
+	Name          string    `json:"name"`
+	StartDateTime time.Time `json:"startDateTime"`
 }
 
 // Contribution defines model for Contribution.
@@ -88,14 +91,18 @@ type UserStats struct {
 // AddCardToDeckTextBody defines parameters for AddCardToDeck.
 type AddCardToDeckTextBody = string
 
-// CreateCommunityTextBody defines parameters for CreateCommunity.
-type CreateCommunityTextBody = string
+// CreateCommunityJSONBody defines parameters for CreateCommunity.
+type CreateCommunityJSONBody struct {
+	EndDateTime   time.Time `json:"endDateTime"`
+	Name          string    `json:"name"`
+	StartDateTime time.Time `json:"startDateTime"`
+}
 
 // AddCardToDeckTextRequestBody defines body for AddCardToDeck for text/plain ContentType.
 type AddCardToDeckTextRequestBody = AddCardToDeckTextBody
 
-// CreateCommunityTextRequestBody defines body for CreateCommunity for text/plain ContentType.
-type CreateCommunityTextRequestBody = CreateCommunityTextBody
+// CreateCommunityJSONRequestBody defines body for CreateCommunity for application/json ContentType.
+type CreateCommunityJSONRequestBody CreateCommunityJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -605,7 +612,7 @@ func (response GetCommunities200JSONResponse) VisitGetCommunitiesResponse(w http
 }
 
 type CreateCommunityRequestObject struct {
-	Body *CreateCommunityTextRequestBody
+	Body *CreateCommunityJSONRequestBody
 }
 
 type CreateCommunityResponseObject interface {
@@ -980,12 +987,12 @@ func (sh *strictHandler) GetCommunities(ctx *gin.Context) {
 func (sh *strictHandler) CreateCommunity(ctx *gin.Context) {
 	var request CreateCommunityRequestObject
 
-	data, err := io.ReadAll(ctx.Request.Body)
-	if err != nil {
+	var body CreateCommunityJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
 		ctx.Error(err)
 		return
 	}
-	body := CreateCommunityTextRequestBody(data)
 	request.Body = &body
 
 	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
