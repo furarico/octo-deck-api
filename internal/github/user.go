@@ -41,3 +41,47 @@ func (c *Client) toUserInfo(user *github.User) *UserInfo {
 		AvatarURL: user.GetAvatarURL(),
 	}
 }
+
+// GetUsersByIDs は複数のGitHub IDからユーザー情報を一括取得する（GraphQL使用）
+func (c *Client) GetUsersByIDs(ctx context.Context, ids []int64) (map[int64]*UserInfo, error) {
+	if len(ids) == 0 {
+		return make(map[int64]*UserInfo), nil
+	}
+
+	// まずREST APIで各IDのログイン名を取得（GraphQLはIDでの直接検索をサポートしていないため）
+	// 並列処理で高速化
+	type result struct {
+		id   int64
+		info *UserInfo
+		err  error
+	}
+
+	results := make(chan result, len(ids))
+
+	for _, id := range ids {
+		go func(id int64) {
+			info, err := c.GetUserByID(ctx, id)
+			results <- result{id: id, info: info, err: err}
+		}(id)
+	}
+
+	userMap := make(map[int64]*UserInfo)
+	var firstErr error
+
+	for range ids {
+		r := <-results
+		if r.err != nil {
+			if firstErr == nil {
+				firstErr = r.err
+			}
+			continue
+		}
+		userMap[r.id] = r.info
+	}
+
+	if firstErr != nil && len(userMap) == 0 {
+		return nil, firstErr
+	}
+
+	return userMap, nil
+}

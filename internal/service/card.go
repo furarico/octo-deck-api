@@ -44,11 +44,9 @@ func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubCl
 		return nil, fmt.Errorf("failed to get all cards: %w", err)
 	}
 
-	// 各カードにGitHub情報を補完
-	for i := range cards {
-		if err := EnrichCardWithGitHubInfo(ctx, &cards[i], githubClient); err != nil {
-			return nil, err
-		}
+	// バッチ処理でGitHub情報を一括取得
+	if err := EnrichCardsWithGitHubInfo(ctx, cards, githubClient); err != nil {
+		return nil, fmt.Errorf("failed to enrich cards with github info: %w", err)
 	}
 
 	return cards, nil
@@ -193,6 +191,69 @@ func EnrichCardWithGitHubInfo(ctx context.Context, card *domain.Card, githubClie
 	card.MostUsedLanguage = domain.Language{
 		LanguageName: langName,
 		Color:        langColor,
+	}
+
+	return nil
+}
+
+// EnrichCardsWithGitHubInfo は複数のカードにGitHub情報を一括で設定する（バッチ処理版）
+// N+1問題を解消し、並列処理でパフォーマンスを向上させる
+func EnrichCardsWithGitHubInfo(ctx context.Context, cards []domain.Card, githubClient GitHubClient) error {
+	if len(cards) == 0 {
+		return nil
+	}
+
+	// GitHub IDを収集
+	githubIDs := make([]int64, 0, len(cards))
+	idToIndex := make(map[int64][]int) // 同じGitHub IDを持つカードのインデックスを保持
+
+	for i, card := range cards {
+		githubID, err := strconv.ParseInt(card.GithubID, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid github id for card %d: %w", i, err)
+		}
+		if _, exists := idToIndex[githubID]; !exists {
+			githubIDs = append(githubIDs, githubID)
+		}
+		idToIndex[githubID] = append(idToIndex[githubID], i)
+	}
+
+	// 一括でユーザー情報を取得（並列処理）
+	userInfoMap, err := githubClient.GetUsersByIDs(ctx, githubIDs)
+	if err != nil {
+		return fmt.Errorf("failed to get users info: %w", err)
+	}
+
+	// ログイン名を収集
+	logins := make([]string, 0, len(userInfoMap))
+	for _, userInfo := range userInfoMap {
+		logins = append(logins, userInfo.Login)
+	}
+
+	// 一括で言語情報を取得（並列処理）
+	langInfoMap, err := githubClient.GetMostUsedLanguages(ctx, logins)
+	if err != nil {
+		return fmt.Errorf("failed to get languages info: %w", err)
+	}
+
+	// カードに情報を設定
+	for githubID, indices := range idToIndex {
+		userInfo, ok := userInfoMap[githubID]
+		if !ok {
+			continue
+		}
+
+		langInfo := langInfoMap[userInfo.Login]
+
+		for _, idx := range indices {
+			cards[idx].UserName = userInfo.Login
+			cards[idx].FullName = userInfo.Name
+			cards[idx].IconUrl = userInfo.AvatarURL
+			cards[idx].MostUsedLanguage = domain.Language{
+				LanguageName: langInfo.Name,
+				Color:        langInfo.Color,
+			}
+		}
 	}
 
 	return nil

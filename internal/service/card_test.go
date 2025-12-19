@@ -94,13 +94,13 @@ func TestGetAllCards(t *testing.T) {
 			},
 			setupGitHub: func() *github.MockClient {
 				return &github.MockClient{
-					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
+					GetUsersByIDsFunc: func(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
 				}
 			},
 			wantErr:    true,
-			wantErrMsg: "failed to get github user info",
+			wantErrMsg: "failed to get users info",
 		},
 		{
 			name:     "無効なGitHubIDの場合",

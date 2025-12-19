@@ -209,3 +209,53 @@ func (c *Client) GetMostUsedLanguage(ctx context.Context, login string) (string,
 
 	return mostUsedLanguage, GetLanguageColor(mostUsedLanguage), nil
 }
+
+// LanguageInfo は言語名と色を保持する構造体
+type LanguageInfo struct {
+	Name  string
+	Color string
+}
+
+// GetMostUsedLanguages は複数ユーザーの最も使用している言語を一括取得する（並列処理）
+func (c *Client) GetMostUsedLanguages(ctx context.Context, logins []string) (map[string]LanguageInfo, error) {
+	if len(logins) == 0 {
+		return make(map[string]LanguageInfo), nil
+	}
+
+	type result struct {
+		login string
+		info  LanguageInfo
+		err   error
+	}
+
+	results := make(chan result, len(logins))
+
+	for _, login := range logins {
+		go func(login string) {
+			langName, langColor, err := c.GetMostUsedLanguage(ctx, login)
+			results <- result{
+				login: login,
+				info:  LanguageInfo{Name: langName, Color: langColor},
+				err:   err,
+			}
+		}(login)
+	}
+
+	langMap := make(map[string]LanguageInfo)
+	var firstErr error
+
+	for range logins {
+		r := <-results
+		if r.err != nil {
+			if firstErr == nil {
+				firstErr = r.err
+			}
+			// エラーが発生した場合はデフォルト値を設定
+			langMap[r.login] = LanguageInfo{Name: "Unknown", Color: "#586069"}
+			continue
+		}
+		langMap[r.login] = r.info
+	}
+
+	return langMap, nil
+}

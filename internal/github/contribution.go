@@ -76,11 +76,34 @@ func (c *Client) GetContributionStats(ctx context.Context, githubID int64) (*Con
 }
 
 // GetUsersContributions は複数ユーザーの貢献データを取得する
+// GitHub GraphQL APIのリソース制限を回避するため、バッチ処理で取得する
 func (c *Client) GetUsersContributions(ctx context.Context, usernames []string, from, to time.Time) ([]UserContributionStats, error) {
 	if len(usernames) == 0 {
 		return []UserContributionStats{}, nil
 	}
 
+	const batchSize = 15 // 一度に処理するユーザー数（リソース制限回避のため）
+	var allStats []UserContributionStats
+
+	for i := 0; i < len(usernames); i += batchSize {
+		end := i + batchSize
+		if end > len(usernames) {
+			end = len(usernames)
+		}
+		batch := usernames[i:end]
+
+		stats, err := c.getUsersContributionsBatch(ctx, batch, from, to)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get users contributions (batch %d-%d): %w", i, end, err)
+		}
+		allStats = append(allStats, stats...)
+	}
+
+	return allStats, nil
+}
+
+// getUsersContributionsBatch は指定されたユーザーの貢献データを一括取得する（内部用）
+func (c *Client) getUsersContributionsBatch(ctx context.Context, usernames []string, from, to time.Time) ([]UserContributionStats, error) {
 	// ユーザー名をクエリ形式に変換 (例: "user:octocat user:torvalds")
 	userQuery := strings.Join(func() []string {
 		result := make([]string, len(usernames))
@@ -135,7 +158,7 @@ func (c *Client) GetUsersContributions(ctx context.Context, usernames []string, 
 	}
 
 	if err := c.executeGraphQL(ctx, query, variables, &result); err != nil {
-		return nil, fmt.Errorf("failed to get users contributions: %w", err)
+		return nil, err
 	}
 
 	stats := make([]UserContributionStats, 0, len(result.Search.Nodes))
