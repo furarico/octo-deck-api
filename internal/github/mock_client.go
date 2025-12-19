@@ -75,7 +75,7 @@ func (m *MockClient) GetMostUsedLanguages(ctx context.Context, logins []string) 
 	for _, login := range logins {
 		name, color, err := m.GetMostUsedLanguage(ctx, login)
 		if err != nil {
-			result[login] = LanguageInfo{Name: "Unknown", Color: "#586069"}
+			result[login] = LanguageInfo{Name: "Unknown", Color: defaultLanguageColor}
 			continue
 		}
 		result[login] = LanguageInfo{Name: name, Color: color}

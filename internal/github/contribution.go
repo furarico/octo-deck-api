@@ -158,7 +158,7 @@ func (c *Client) getUsersContributionsBatch(ctx context.Context, usernames []str
 	}
 
 	if err := c.executeGraphQL(ctx, query, variables, &result); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to execute GraphQL query: %w", err)
 	}
 
 	stats := make([]UserContributionStats, 0, len(result.Search.Nodes))

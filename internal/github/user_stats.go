@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"fmt"
+	"sync"
 )
 
 // GitHubIDからコントリビューション統計を取得する
@@ -204,7 +205,7 @@ func (c *Client) GetMostUsedLanguage(ctx context.Context, login string) (string,
 
 	// 言語が見つからない場合はデフォルト値を返す
 	if mostUsedLanguage == "" {
-		return "Unknown", "#586069", nil
+		return "Unknown", defaultLanguageColor, nil
 	}
 
 	return mostUsedLanguage, GetLanguageColor(mostUsedLanguage), nil
@@ -212,11 +213,12 @@ func (c *Client) GetMostUsedLanguage(ctx context.Context, login string) (string,
 
 // LanguageInfo は言語名と色を保持する構造体
 type LanguageInfo struct {
-	Name  string
-	Color string
+	Name  string // 言語名（例: "Go", "Python"）
+	Color string // 言語の表示色（例: "#00ADD8"）
 }
 
-// GetMostUsedLanguages は複数ユーザーの最も使用している言語を一括取得する（並列処理）
+// GetMostUsedLanguages は複数ユーザーの最も使用している言語を一括取得する
+// 並列処理で高速化しつつ、同時実行数を制限してレート制限を回避する
 func (c *Client) GetMostUsedLanguages(ctx context.Context, logins []string) (map[string]LanguageInfo, error) {
 	if len(logins) == 0 {
 		return make(map[string]LanguageInfo), nil
@@ -229,9 +231,27 @@ func (c *Client) GetMostUsedLanguages(ctx context.Context, logins []string) (map
 	}
 
 	results := make(chan result, len(logins))
+	sem := make(chan struct{}, maxConcurrentRequests) // 同時実行数を制限
 
+	var wg sync.WaitGroup
 	for _, login := range logins {
+		wg.Add(1)
 		go func(login string) {
+			defer wg.Done()
+
+			// コンテキストがキャンセルされていたら早期リターン
+			select {
+			case <-ctx.Done():
+				results <- result{
+					login: login,
+					info:  LanguageInfo{Name: "Unknown", Color: defaultLanguageColor},
+					err:   ctx.Err(),
+				}
+				return
+			case sem <- struct{}{}: // セマフォを取得
+				defer func() { <-sem }()
+			}
+
 			langName, langColor, err := c.GetMostUsedLanguage(ctx, login)
 			results <- result{
 				login: login,
@@ -241,17 +261,18 @@ func (c *Client) GetMostUsedLanguages(ctx context.Context, logins []string) (map
 		}(login)
 	}
 
-	langMap := make(map[string]LanguageInfo)
-	var firstErr error
+	// 全てのgoroutineが完了したらチャネルを閉じる
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
 
-	for range logins {
-		r := <-results
+	langMap := make(map[string]LanguageInfo)
+
+	for r := range results {
 		if r.err != nil {
-			if firstErr == nil {
-				firstErr = r.err
-			}
-			// エラーが発生した場合はデフォルト値を設定
-			langMap[r.login] = LanguageInfo{Name: "Unknown", Color: "#586069"}
+			// エラーが発生した場合はデフォルト値を設定（部分的なエラーを許容）
+			langMap[r.login] = LanguageInfo{Name: "Unknown", Color: defaultLanguageColor}
 			continue
 		}
 		langMap[r.login] = r.info
