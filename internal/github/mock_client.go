@@ -8,15 +8,16 @@ import (
 // MockClient はテスト用のモッククライアント
 // service.GitHubClientインターフェースを実装します
 type MockClient struct {
-	GetAuthenticatedUserFunc        func(ctx context.Context) (*UserInfo, error)
-	GetUserByIDFunc                 func(ctx context.Context, id int64) (*UserInfo, error)
-	GetUsersByIDsFunc               func(ctx context.Context, ids []int64) (map[int64]*UserInfo, error)
-	GetUserStatsFunc                func(ctx context.Context, githubID int64) (*UserStats, error)
-	GetMostUsedLanguageFunc         func(ctx context.Context, login string) (string, string, error)
-	GetMostUsedLanguagesFunc        func(ctx context.Context, logins []string) (map[string]LanguageInfo, error)
-	GetContributionStatsFunc        func(ctx context.Context, githubID int64) (*ContributionStats, error)
-	GetUsersContributionsFunc       func(ctx context.Context, usernames []string, from, to time.Time) ([]UserContributionStats, error)
-	GetContributionsByNodeIDsFunc   func(ctx context.Context, nodeIDs []string, from, to time.Time) ([]UserContributionStats, error)
+	GetAuthenticatedUserFunc      func(ctx context.Context) (*UserInfo, error)
+	GetUserByIDFunc               func(ctx context.Context, id int64) (*UserInfo, error)
+	GetUsersByIDsFunc             func(ctx context.Context, ids []int64) (map[int64]*UserInfo, error)
+	GetUserStatsFunc              func(ctx context.Context, githubID int64) (*UserStats, error)
+	GetMostUsedLanguageFunc       func(ctx context.Context, login string) (string, string, error)
+	GetMostUsedLanguagesFunc      func(ctx context.Context, logins []string) (map[string]LanguageInfo, error)
+	GetContributionStatsFunc      func(ctx context.Context, githubID int64) (*ContributionStats, error)
+	GetUsersContributionsFunc     func(ctx context.Context, usernames []string, from, to time.Time) ([]UserContributionStats, error)
+	GetContributionsByNodeIDsFunc func(ctx context.Context, nodeIDs []string, from, to time.Time) ([]UserContributionStats, error)
+	GetUsersFullInfoByNodeIDsFunc func(ctx context.Context, nodeIDs []string, from, to time.Time) ([]UserFullInfo, error)
 }
 
 func NewMockClient() *MockClient {
@@ -103,4 +104,12 @@ func (m *MockClient) GetContributionsByNodeIDs(ctx context.Context, nodeIDs []st
 		return m.GetContributionsByNodeIDsFunc(ctx, nodeIDs, from, to)
 	}
 	return []UserContributionStats{}, nil
+}
+
+func (m *MockClient) GetUsersFullInfoByNodeIDs(ctx context.Context, nodeIDs []string, from, to time.Time) ([]UserFullInfo, error) {
+	if m.GetUsersFullInfoByNodeIDsFunc != nil {
+		return m.GetUsersFullInfoByNodeIDsFunc(ctx, nodeIDs, from, to)
+	}
+	// デフォルトでは空の結果を返す
+	return []UserFullInfo{}, nil
 }

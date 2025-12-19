@@ -18,4 +18,6 @@ type GitHubClient interface {
 	GetContributionStats(ctx context.Context, githubID int64) (*github.ContributionStats, error)
 	GetUsersContributions(ctx context.Context, usernames []string, from, to time.Time) ([]github.UserContributionStats, error)
 	GetContributionsByNodeIDs(ctx context.Context, nodeIDs []string, from, to time.Time) ([]github.UserContributionStats, error)
+	// GetUsersFullInfoByNodeIDs はNodeIDを使ってユーザーの全情報（基本情報、貢献データ、言語情報）を一括取得する
+	GetUsersFullInfoByNodeIDs(ctx context.Context, nodeIDs []string, from, to time.Time) ([]github.UserFullInfo, error)
 }

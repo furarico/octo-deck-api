@@ -55,7 +55,7 @@ func (s *CommunityService) GetCommunityByID(id string) (*domain.Community, error
 }
 
 // GetCommunityWithHighlightedCard はコミュニティとHighlightedCardを取得する
-// 最適化: NodeIDを使って先に貢献データを取得し、ベスト5人だけにEnrichCardsWithGitHubInfoを呼ぶ
+// 最適化: 統合GraphQLクエリを使用して、ユーザー情報・貢献データ・言語情報を1回のAPI呼び出しで取得
 func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
 	// コミュニティを取得
 	community, err := s.communityRepo.FindByID(id)
@@ -92,158 +92,102 @@ func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, 
 		return community, &domain.HighlightedCard{}, nil
 	}
 
-	// NodeIDを使ってGitHub APIで貢献データを取得
-	contributions, err := githubClient.GetContributionsByNodeIDs(ctx, nodeIDs, community.StartedAt, community.EndedAt)
+	// 統合GraphQLクエリで全情報を一括取得（ユーザー情報、貢献データ、言語情報）
+	// これにより3回のAPI呼び出しが1回に削減される
+	usersFullInfo, err := githubClient.GetUsersFullInfoByNodeIDs(ctx, nodeIDs, community.StartedAt, community.EndedAt)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get contributions by node ids: %w", err)
+		return nil, nil, fmt.Errorf("failed to get users full info by node ids: %w", err)
 	}
 
-	// 貢献データがない場合は空のHighlightedCardを返す
-	if len(contributions) == 0 {
+	// データがない場合は空のHighlightedCardを返す
+	if len(usersFullInfo) == 0 {
 		return community, &domain.HighlightedCard{}, nil
 	}
 
-	// login -> NodeIDのマッピングを構築（contributionsからnodeIDを逆引きするため）
-	// NodeIDリストとcontributionsの順序は保証されないため、loginで対応付ける
-	loginToNodeID := make(map[string]string)
-	for i, nodeID := range nodeIDs {
-		if i < len(contributions) {
-			// contributionsの順序がnodeIDsと同じ場合
-			loginToNodeID[contributions[i].Login] = nodeID
-		}
-	}
-
-	// 各カテゴリのベストユーザーを特定
-	bestLogins := findBestLogins(contributions)
-
-	// ベストユーザーのカードインデックスを特定（重複を除外）
-	bestCardIndices := make(map[int]bool)
-	loginToCardIndex := make(map[string]int)
-	for login := range bestLogins {
-		// loginからnodeIDを探す
-		for i, c := range contributions {
-			if c.Login == login && i < len(nodeIDs) {
-				nodeID := nodeIDs[i]
-				if idx, ok := cardIndexByNodeID[nodeID]; ok {
-					bestCardIndices[idx] = true
-					loginToCardIndex[login] = idx
-				}
-				break
-			}
-		}
-	}
-
-	// ベスト5人のカードだけを抽出してEnrich
-	cardsToEnrich := make([]domain.Card, 0, len(bestCardIndices))
-	indexMapping := make([]int, 0, len(bestCardIndices)) // enrichedカードのインデックス -> 元のcardsのインデックス
-	for idx := range bestCardIndices {
-		cardsToEnrich = append(cardsToEnrich, cards[idx])
-		indexMapping = append(indexMapping, idx)
-	}
-
-	// バッチ処理でGitHub情報を一括取得（最大5人分のみ）
-	if err := EnrichCardsWithGitHubInfo(ctx, cardsToEnrich, githubClient); err != nil {
-		return nil, nil, fmt.Errorf("failed to enrich cards with github info: %w", err)
-	}
-
-	// Enrichした結果を元のcardsに反映
-	for i, enrichedCard := range cardsToEnrich {
-		originalIdx := indexMapping[i]
-		cards[originalIdx] = enrichedCard
-	}
-
-	// cardByUsernameマップを構築（Enrich後のカードから）
-	cardByUsername := make(map[string]domain.Card)
-	for _, card := range cards {
-		if card.UserName != "" {
-			cardByUsername[card.UserName] = card
-		}
-	}
-
-	// 各カテゴリのベストユーザーを計算
-	highlightedCard := calculateHighlightedCard(contributions, cardByUsername)
+	// 各カテゴリのベストユーザーを計算し、カード情報を構築
+	highlightedCard := calculateHighlightedCardFromFullInfo(usersFullInfo, cards, cardIndexByNodeID, nodeIDs)
 
 	return community, highlightedCard, nil
 }
 
-// findBestLogins は各カテゴリのベストユーザーのloginを返す（重複なし）
-func findBestLogins(contributions []github.UserContributionStats) map[string]bool {
-	if len(contributions) == 0 {
-		return nil
-	}
-
-	var bestContributor, bestCommitter, bestIssuer, bestPRer, bestReviewer github.UserContributionStats
-
-	for _, c := range contributions {
-		if c.Total > bestContributor.Total {
-			bestContributor = c
-		}
-		if c.Commits > bestCommitter.Commits {
-			bestCommitter = c
-		}
-		if c.Issues > bestIssuer.Issues {
-			bestIssuer = c
-		}
-		if c.PRs > bestPRer.PRs {
-			bestPRer = c
-		}
-		if c.Reviews > bestReviewer.Reviews {
-			bestReviewer = c
-		}
-	}
-
-	logins := make(map[string]bool)
-	if bestContributor.Login != "" {
-		logins[bestContributor.Login] = true
-	}
-	if bestCommitter.Login != "" {
-		logins[bestCommitter.Login] = true
-	}
-	if bestIssuer.Login != "" {
-		logins[bestIssuer.Login] = true
-	}
-	if bestPRer.Login != "" {
-		logins[bestPRer.Login] = true
-	}
-	if bestReviewer.Login != "" {
-		logins[bestReviewer.Login] = true
-	}
-
-	return logins
-}
-
-// calculateHighlightedCard は貢献データから各カテゴリのベストユーザーを計算する
-func calculateHighlightedCard(contributions []github.UserContributionStats, cardByUsername map[string]domain.Card) *domain.HighlightedCard {
-	if len(contributions) == 0 {
+// calculateHighlightedCardFromFullInfo は統合クエリの結果から各カテゴリのベストユーザーを計算する
+func calculateHighlightedCardFromFullInfo(usersFullInfo []github.UserFullInfo, cards []domain.Card, cardIndexByNodeID map[string]int, nodeIDs []string) *domain.HighlightedCard {
+	if len(usersFullInfo) == 0 {
 		return &domain.HighlightedCard{}
 	}
 
-	var bestContributor, bestCommitter, bestIssuer, bestPRer, bestReviewer github.UserContributionStats
+	// login -> UserFullInfoのマップを構築
+	userInfoByLogin := make(map[string]github.UserFullInfo)
+	for _, info := range usersFullInfo {
+		userInfoByLogin[info.Login] = info
+	}
 
-	for _, c := range contributions {
-		if c.Total > bestContributor.Total {
-			bestContributor = c
+	// 各カテゴリのベストユーザーを特定
+	var bestContributor, bestCommitter, bestIssuer, bestPRer, bestReviewer github.UserFullInfo
+
+	for _, info := range usersFullInfo {
+		if info.Total > bestContributor.Total {
+			bestContributor = info
 		}
-		if c.Commits > bestCommitter.Commits {
-			bestCommitter = c
+		if info.Commits > bestCommitter.Commits {
+			bestCommitter = info
 		}
-		if c.Issues > bestIssuer.Issues {
-			bestIssuer = c
+		if info.Issues > bestIssuer.Issues {
+			bestIssuer = info
 		}
-		if c.PRs > bestPRer.PRs {
-			bestPRer = c
+		if info.PRs > bestPRer.PRs {
+			bestPRer = info
 		}
-		if c.Reviews > bestReviewer.Reviews {
-			bestReviewer = c
+		if info.Reviews > bestReviewer.Reviews {
+			bestReviewer = info
 		}
 	}
 
+	// login -> nodeID のマッピングを構築
+	// usersFullInfoの順序はnodeIDsと同じであることを前提とする
+	loginToNodeID := make(map[string]string)
+	for i, info := range usersFullInfo {
+		if i < len(nodeIDs) {
+			loginToNodeID[info.Login] = nodeIDs[i]
+		}
+	}
+
+	// ベストユーザーのカードを構築するヘルパー関数
+	buildCard := func(info github.UserFullInfo) domain.Card {
+		if info.Login == "" {
+			return domain.Card{}
+		}
+
+		// nodeIDからカードを探す
+		nodeID, ok := loginToNodeID[info.Login]
+		if !ok {
+			return domain.Card{}
+		}
+
+		cardIdx, ok := cardIndexByNodeID[nodeID]
+		if !ok {
+			return domain.Card{}
+		}
+
+		card := cards[cardIdx]
+		// GitHub APIから取得した情報でカードを補完
+		card.UserName = info.Login
+		card.FullName = info.Name
+		card.IconUrl = info.AvatarURL
+		card.MostUsedLanguage = domain.Language{
+			LanguageName: info.MostUsedLanguage,
+			Color:        info.MostUsedLanguageColor,
+		}
+
+		return card
+	}
+
 	return &domain.HighlightedCard{
-		BestContributor:   cardByUsername[bestContributor.Login],
-		BestCommitter:     cardByUsername[bestCommitter.Login],
-		BestIssuer:        cardByUsername[bestIssuer.Login],
-		BestPullRequester: cardByUsername[bestPRer.Login],
-		BestReviewer:      cardByUsername[bestReviewer.Login],
+		BestContributor:   buildCard(bestContributor),
+		BestCommitter:     buildCard(bestCommitter),
+		BestIssuer:        buildCard(bestIssuer),
+		BestPullRequester: buildCard(bestPRer),
+		BestReviewer:      buildCard(bestReviewer),
 	}
 }
 
