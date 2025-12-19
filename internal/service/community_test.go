@@ -312,13 +312,13 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 			},
 			setupGitHub: func() *github.MockClient {
 				return &github.MockClient{
-					GetContributionsByNodeIDsFunc: func(ctx context.Context, nodeIDs []string, from, to time.Time) ([]github.UserContributionStats, error) {
+					GetUsersFullInfoByNodeIDsFunc: func(ctx context.Context, nodeIDs []string, from, to time.Time) ([]github.UserFullInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
 				}
 			},
 			wantErr:    true,
-			wantErrMsg: "failed to get contributions by node ids",
+			wantErrMsg: "failed to get users full info by node ids",
 		},
 	}
 
