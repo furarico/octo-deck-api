@@ -12,7 +12,7 @@ type MockCommunityService struct {
 	GetAllCommunitiesFunc               func(githubID string) ([]domain.Community, error)
 	GetCommunityByIDFunc                func(id string) (*domain.Community, error)
 	GetCommunityWithHighlightedCardFunc func(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
-	GetCommunityCardsFunc               func(id string) ([]domain.Card, error)
+	GetCommunityCardsFunc               func(ctx context.Context, id string, githubClient GitHubClient) ([]domain.Card, error)
 	CreateCommunityWithPeriodFunc       func(name string, startDateTime, endDateTime time.Time) (*domain.Community, error)
 	DeleteCommunityFunc                 func(id string) error
 	AddCardToCommunityFunc              func(communityID string, cardID string) error

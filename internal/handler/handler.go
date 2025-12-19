@@ -41,7 +41,7 @@ type CommunityServiceInterface interface {
 	GetAllCommunities(githubID string) ([]domain.Community, error)
 	GetCommunityByID(id string) (*domain.Community, error)
 	GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
-	GetCommunityCards(id string) ([]domain.Card, error)
+	GetCommunityCards(ctx context.Context, id string, githubClient service.GitHubClient) ([]domain.Card, error)
 	CreateCommunityWithPeriod(name string, startDateTime, endDateTime time.Time) (*domain.Community, error)
 	DeleteCommunity(id string) error
 	AddCardToCommunity(communityID string, cardID string) error
