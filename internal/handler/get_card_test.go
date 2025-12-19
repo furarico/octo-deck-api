@@ -10,6 +10,7 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
+	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -97,7 +98,7 @@ func TestGetCard(t *testing.T) {
 // setTestContext はテスト用のコンテキストを設定するミドルウェア
 func setTestContext(c *gin.Context) {
 	ctx := c.Request.Context()
-	ctx = context.WithValue(ctx, GitHubClientKey, service.NewMockGitHubClient())
+	ctx = context.WithValue(ctx, GitHubClientKey, github.NewMockClient())
 	ctx = context.WithValue(ctx, GitHubIDKey, "test_user")
 	c.Request = c.Request.WithContext(ctx)
 	c.Next()

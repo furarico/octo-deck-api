@@ -14,8 +14,8 @@ import (
 )
 
 // テスト用のヘルパー関数: 正常なGitHubClientを返す
-func createMockGitHubClient() *MockGitHubClient {
-	return &MockGitHubClient{
+func createMockGitHubClient() *github.MockClient {
+	return &github.MockClient{
 		GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
 			return &github.UserInfo{
 				ID:        id,
@@ -46,7 +46,7 @@ func TestGetAllCards(t *testing.T) {
 		name          string
 		githubID      string
 		setupRepo     func() *repository.MockCardRepository
-		setupGitHub   func() *MockGitHubClient
+		setupGitHub   func() *github.MockClient
 		wantErr       bool
 		wantErrMsg    string
 		wantCardCount int
@@ -92,8 +92,8 @@ func TestGetAllCards(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
@@ -156,7 +156,7 @@ func TestGetCardByGitHubID(t *testing.T) {
 		name        string
 		githubID    string
 		setupRepo   func() *repository.MockCardRepository
-		setupGitHub func() *MockGitHubClient
+		setupGitHub func() *github.MockClient
 		wantErr     bool
 		wantErrMsg  string
 	}{
@@ -211,8 +211,8 @@ func TestGetCardByGitHubID(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
@@ -279,7 +279,7 @@ func TestGetMyCard(t *testing.T) {
 		name        string
 		githubID    string
 		setupRepo   func() *repository.MockCardRepository
-		setupGitHub func() *MockGitHubClient
+		setupGitHub func() *github.MockClient
 		wantErr     bool
 		wantErrMsg  string
 	}{
@@ -334,8 +334,8 @@ func TestGetMyCard(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
@@ -388,7 +388,7 @@ func TestGetOrCreateMyCard(t *testing.T) {
 		githubID       string
 		setupRepo      func() *repository.MockCardRepository
 		setupIdenticon func() *identicon.MockIdenticonGenerator
-		setupGitHub    func() *MockGitHubClient
+		setupGitHub    func() *github.MockClient
 		wantErr        bool
 		wantErrMsg     string
 		wantCreated    bool
@@ -509,8 +509,8 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			setupIdenticon: func() *identicon.MockIdenticonGenerator {
 				return &identicon.MockIdenticonGenerator{}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
@@ -563,7 +563,7 @@ func TestAddCardToDeck(t *testing.T) {
 		collectorGithubID string
 		targetGithubID    string
 		setupRepo         func() *repository.MockCardRepository
-		setupGitHub       func() *MockGitHubClient
+		setupGitHub       func() *github.MockClient
 		wantErr           bool
 		wantErrMsg        string
 	}{
@@ -646,8 +646,8 @@ func TestAddCardToDeck(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
@@ -700,7 +700,7 @@ func TestRemoveCardFromDeck(t *testing.T) {
 		collectorGithubID string
 		targetGithubID    string
 		setupRepo         func() *repository.MockCardRepository
-		setupGitHub       func() *MockGitHubClient
+		setupGitHub       func() *github.MockClient
 		wantErr           bool
 		wantErrMsg        string
 	}{
@@ -783,8 +783,8 @@ func TestRemoveCardFromDeck(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
