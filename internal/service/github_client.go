@@ -17,4 +17,5 @@ type GitHubClient interface {
 	GetMostUsedLanguages(ctx context.Context, logins []string) (map[string]github.LanguageInfo, error)
 	GetContributionStats(ctx context.Context, githubID int64) (*github.ContributionStats, error)
 	GetUsersContributions(ctx context.Context, usernames []string, from, to time.Time) ([]github.UserContributionStats, error)
+	GetContributionsByNodeIDs(ctx context.Context, nodeIDs []string, from, to time.Time) ([]github.UserContributionStats, error)
 }

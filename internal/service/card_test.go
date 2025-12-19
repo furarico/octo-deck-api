@@ -35,6 +35,7 @@ func createTestCard(githubID string) *domain.Card {
 	return &domain.Card{
 		ID:       domain.NewCardID(),
 		GithubID: githubID,
+		NodeID:   "U_" + githubID, // テスト用のNodeID
 		Color:    domain.Color("#000000"),
 		Blocks:   domain.Blocks{},
 	}

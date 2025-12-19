@@ -221,3 +221,139 @@ func (c *Client) getUsersContributionsBatch(ctx context.Context, usernames []str
 
 	return stats, nil
 }
+
+// GetContributionsByNodeIDs はNodeIDを使って複数ユーザーの貢献データを一括取得する
+// usernameではなくNodeIDを直接使用することで、事前のユーザー情報取得が不要になる
+func (c *Client) GetContributionsByNodeIDs(ctx context.Context, nodeIDs []string, from, to time.Time) ([]UserContributionStats, error) {
+	if len(nodeIDs) == 0 {
+		return []UserContributionStats{}, nil
+	}
+
+	const batchSize = 20 // nodes APIは一度に最大100件まで取得可能
+
+	// バッチ数を計算
+	numBatches := (len(nodeIDs) + batchSize - 1) / batchSize
+
+	// バッチ結果を格納する構造体
+	type batchResult struct {
+		index int
+		stats []UserContributionStats
+		err   error
+	}
+
+	results := make(chan batchResult, numBatches)
+	var wg sync.WaitGroup
+
+	// 各バッチを並列で実行
+	for i := 0; i < len(nodeIDs); i += batchSize {
+		wg.Add(1)
+		batchIndex := i / batchSize
+		start := i
+		end := i + batchSize
+		if end > len(nodeIDs) {
+			end = len(nodeIDs)
+		}
+		batch := nodeIDs[start:end]
+
+		go func(index int, batch []string, start, end int) {
+			defer wg.Done()
+			stats, err := c.getContributionsByNodeIDsBatch(ctx, batch, from, to)
+			if err != nil {
+				results <- batchResult{
+					index: index,
+					err:   fmt.Errorf("failed to get contributions by node ids (batch %d-%d): %w", start, end, err),
+				}
+				return
+			}
+			results <- batchResult{index: index, stats: stats}
+		}(batchIndex, batch, start, end)
+	}
+
+	// 全バッチの完了を待ってチャネルをクローズ
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// 結果を収集（順序を保持するためにインデックスでソート）
+	batchResults := make([]batchResult, numBatches)
+	for result := range results {
+		if result.err != nil {
+			return nil, result.err
+		}
+		batchResults[result.index] = result
+	}
+
+	// 結果を順序通りに結合
+	var allStats []UserContributionStats
+	for _, br := range batchResults {
+		allStats = append(allStats, br.stats...)
+	}
+
+	return allStats, nil
+}
+
+// getContributionsByNodeIDsBatch はNodeIDを使って貢献データを一括取得する（内部用）
+func (c *Client) getContributionsByNodeIDsBatch(ctx context.Context, nodeIDs []string, from, to time.Time) ([]UserContributionStats, error) {
+	query := `
+		query ($ids: [ID!]!, $from: DateTime!, $to: DateTime!) {
+			nodes(ids: $ids) {
+				... on User {
+					login
+					contributionsCollection(from: $from, to: $to) {
+						total: contributionCalendar {
+							totalContributions
+						}
+						commits: totalCommitContributions
+						issues: totalIssueContributions
+						prs: totalPullRequestContributions
+						reviews: totalPullRequestReviewContributions
+					}
+				}
+			}
+		}
+	`
+
+	variables := map[string]interface{}{
+		"ids":  nodeIDs,
+		"from": from.Format(time.RFC3339),
+		"to":   to.Format(time.RFC3339),
+	}
+
+	var result struct {
+		Nodes []struct {
+			Login                   string `json:"login"`
+			ContributionsCollection struct {
+				Total struct {
+					TotalContributions int `json:"totalContributions"`
+				} `json:"total"`
+				Commits int `json:"commits"`
+				Issues  int `json:"issues"`
+				PRs     int `json:"prs"`
+				Reviews int `json:"reviews"`
+			} `json:"contributionsCollection"`
+		} `json:"nodes"`
+	}
+
+	if err := c.executeGraphQL(ctx, query, variables, &result); err != nil {
+		return nil, err
+	}
+
+	stats := make([]UserContributionStats, 0, len(result.Nodes))
+	for _, node := range result.Nodes {
+		// loginが空の場合はスキップ（Userではないノードの可能性）
+		if node.Login == "" {
+			continue
+		}
+		stats = append(stats, UserContributionStats{
+			Login:   node.Login,
+			Total:   node.ContributionsCollection.Total.TotalContributions,
+			Commits: node.ContributionsCollection.Commits,
+			Issues:  node.ContributionsCollection.Issues,
+			PRs:     node.ContributionsCollection.PRs,
+			Reviews: node.ContributionsCollection.Reviews,
+		})
+	}
+
+	return stats, nil
+}

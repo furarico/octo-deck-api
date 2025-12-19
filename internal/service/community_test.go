@@ -219,7 +219,7 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 					GetMostUsedLanguageFunc: func(ctx context.Context, login string) (string, string, error) {
 						return "Go", "#00ADD8", nil
 					},
-					GetUsersContributionsFunc: func(ctx context.Context, usernames []string, from, to time.Time) ([]github.UserContributionStats, error) {
+					GetContributionsByNodeIDsFunc: func(ctx context.Context, nodeIDs []string, from, to time.Time) ([]github.UserContributionStats, error) {
 						return []github.UserContributionStats{
 							{Login: "testuser", Total: 100, Commits: 50, Issues: 20, PRs: 20, Reviews: 10},
 						}, nil
@@ -312,24 +312,13 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 			},
 			setupGitHub: func() *github.MockClient {
 				return &github.MockClient{
-					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
-						return &github.UserInfo{
-							ID:        id,
-							Login:     "testuser",
-							Name:      "Test User",
-							AvatarURL: "https://example.com/avatar.png",
-						}, nil
-					},
-					GetMostUsedLanguageFunc: func(ctx context.Context, login string) (string, string, error) {
-						return "Go", "#00ADD8", nil
-					},
-					GetUsersContributionsFunc: func(ctx context.Context, usernames []string, from, to time.Time) ([]github.UserContributionStats, error) {
+					GetContributionsByNodeIDsFunc: func(ctx context.Context, nodeIDs []string, from, to time.Time) ([]github.UserContributionStats, error) {
 						return nil, fmt.Errorf("github api error")
 					},
 				}
 			},
 			wantErr:    true,
-			wantErrMsg: "failed to get users contributions",
+			wantErrMsg: "failed to get contributions by node ids",
 		},
 	}
 
