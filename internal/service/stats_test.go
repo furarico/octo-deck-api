@@ -15,8 +15,8 @@ func createTestUserStats() *github.UserStats {
 			{Date: "2024-01-01", Count: 5},
 			{Date: "2024-01-02", Count: 3},
 		},
-		TotalContribution: 100,
-		MostUsedLanguage:  "Go",
+		TotalContribution:     100,
+		MostUsedLanguage:      "Go",
 		MostUsedLanguageColor: "#00ADD8",
 		ContributionDetail: github.ContributionDetail{
 			CommitCount:      50,
@@ -81,8 +81,8 @@ func TestGetUserStats(t *testing.T) {
 							Contributions: []github.Contribution{
 								{Date: "invalid-date", Count: 5},
 							},
-							TotalContribution: 100,
-							MostUsedLanguage:  "Go",
+							TotalContribution:     100,
+							MostUsedLanguage:      "Go",
 							MostUsedLanguageColor: "#00ADD8",
 							ContributionDetail: github.ContributionDetail{
 								CommitCount:      50,
@@ -104,11 +104,11 @@ func TestGetUserStats(t *testing.T) {
 				return &MockGitHubClient{
 					GetUserStatsFunc: func(ctx context.Context, githubID int64) (*github.UserStats, error) {
 						return &github.UserStats{
-							Contributions:     []github.Contribution{},
-							TotalContribution: 0,
-							MostUsedLanguage:  "",
+							Contributions:         []github.Contribution{},
+							TotalContribution:     0,
+							MostUsedLanguage:      "",
 							MostUsedLanguageColor: "",
-							ContributionDetail: github.ContributionDetail{},
+							ContributionDetail:    github.ContributionDetail{},
 						}, nil
 					},
 				}
