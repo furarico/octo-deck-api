@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
 )
@@ -12,7 +13,7 @@ type MockCommunityService struct {
 	GetCommunityByIDFunc                func(id string) (*domain.Community, error)
 	GetCommunityWithHighlightedCardFunc func(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
 	GetCommunityCardsFunc               func(id string) ([]domain.Card, error)
-	CreateCommunityFunc                 func(name string) (*domain.Community, error)
+	CreateCommunityWithPeriodFunc       func(name string, startDateTime, endDateTime time.Time) (*domain.Community, error)
 	DeleteCommunityFunc                 func(id string) error
 	AddCardToCommunityFunc              func(communityID string, cardID string) error
 	RemoveCardFromCommunityFunc         func(communityID string, cardID string) error
@@ -50,9 +51,9 @@ func (m *MockCommunityService) GetCommunityCards(id string) ([]domain.Card, erro
 	return []domain.Card{}, nil
 }
 
-func (m *MockCommunityService) CreateCommunity(name string) (*domain.Community, error) {
-	if m.CreateCommunityFunc != nil {
-		return m.CreateCommunityFunc(name)
+func (m *MockCommunityService) CreateCommunityWithPeriod(name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
+	if m.CreateCommunityWithPeriodFunc != nil {
+		return m.CreateCommunityWithPeriodFunc(name, startDateTime, endDateTime)
 	}
 	return nil, nil
 }
