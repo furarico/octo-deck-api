@@ -11,7 +11,7 @@ paths:
       description: 自分のデッキを取得
       parameters: []
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -21,7 +21,7 @@ paths:
                   cards:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Card"
+                      $ref: '#/components/schemas/Card'
                 required:
                   - cards
     post:
@@ -29,7 +29,7 @@ paths:
       summary: カードをデッキに追加
       parameters: []
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -37,7 +37,7 @@ paths:
                 type: object
                 properties:
                   card:
-                    $ref: "#/components/schemas/Card"
+                    $ref: '#/components/schemas/Card'
                 required:
                   - card
       requestBody:
@@ -52,7 +52,7 @@ paths:
       summary: 自分のカード取得
       parameters: []
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -60,7 +60,7 @@ paths:
                 type: object
                 properties:
                   card:
-                    $ref: "#/components/schemas/Card"
+                    $ref: '#/components/schemas/Card'
                 required:
                   - card
   /cards/{githubId}:
@@ -75,7 +75,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -83,7 +83,7 @@ paths:
                 type: object
                 properties:
                   card:
-                    $ref: "#/components/schemas/Card"
+                    $ref: '#/components/schemas/Card'
                 required:
                   - card
     delete:
@@ -96,7 +96,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -104,7 +104,7 @@ paths:
                 type: object
                 properties:
                   card:
-                    $ref: "#/components/schemas/Card"
+                    $ref: '#/components/schemas/Card'
                 required:
                   - card
   /communities:
@@ -114,7 +114,7 @@ paths:
       description: 自分が入っているコミュニティ一覧取得
       parameters: []
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -124,7 +124,7 @@ paths:
                   communities:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Community"
+                      $ref: '#/components/schemas/Community'
                 required:
                   - communities
     post:
@@ -132,7 +132,7 @@ paths:
       summary: コミュニティを作成
       parameters: []
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -140,7 +140,7 @@ paths:
                 type: object
                 properties:
                   community:
-                    $ref: "#/components/schemas/Community"
+                    $ref: '#/components/schemas/Community'
                 required:
                   - community
       requestBody:
@@ -173,7 +173,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -181,9 +181,9 @@ paths:
                 type: object
                 properties:
                   community:
-                    $ref: "#/components/schemas/Community"
+                    $ref: '#/components/schemas/Community'
                   highlightedCard:
-                    $ref: "#/components/schemas/HighlightedCard"
+                    $ref: '#/components/schemas/HighlightedCard'
                 required:
                   - community
                   - highlightedCard
@@ -197,7 +197,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -205,35 +205,9 @@ paths:
                 type: object
                 properties:
                   community:
-                    $ref: "#/components/schemas/Community"
+                    $ref: '#/components/schemas/Community'
                 required:
                   - community
-  /communities/{id}/refresh:
-    put:
-      operationId: refreshCommunity
-      summary: コミュニティのHighlightedCardを更新
-      description: GitHub APIを呼び出してHighlightedCardを再計算し、データベースに保存する
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: The request has succeeded.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  community:
-                    $ref: "#/components/schemas/Community"
-                  highlightedCard:
-                    $ref: "#/components/schemas/HighlightedCard"
-                required:
-                  - community
-                  - highlightedCard
   /communities/{id}/cards:
     get:
       operationId: getCommunityCards
@@ -245,7 +219,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -255,7 +229,7 @@ paths:
                   cards:
                     type: array
                     items:
-                      $ref: "#/components/schemas/Card"
+                      $ref: '#/components/schemas/Card'
                 required:
                   - cards
     post:
@@ -268,7 +242,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -276,7 +250,7 @@ paths:
                 type: object
                 properties:
                   card:
-                    $ref: "#/components/schemas/Card"
+                    $ref: '#/components/schemas/Card'
                 required:
                   - card
     delete:
@@ -289,7 +263,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -297,16 +271,42 @@ paths:
                 type: object
                 properties:
                   card:
-                    $ref: "#/components/schemas/Card"
+                    $ref: '#/components/schemas/Card'
                 required:
                   - card
+  /communities/{id}/refresh:
+    put:
+      operationId: refreshCommunity
+      summary: コミュニティのHighlightedCardを更新
+      description: GitHub APIを呼び出してHighlightedCardを再計算し、データベースに保存する
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  community:
+                    $ref: '#/components/schemas/Community'
+                  highlightedCard:
+                    $ref: '#/components/schemas/HighlightedCard'
+                required:
+                  - community
+                  - highlightedCard
   /stats/me:
     get:
       operationId: getMyStats
       summary: 自分の統計情報取得
       parameters: []
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -314,7 +314,7 @@ paths:
                 type: object
                 properties:
                   stats:
-                    $ref: "#/components/schemas/UserStats"
+                    $ref: '#/components/schemas/UserStats'
                 required:
                   - stats
   /stats/{githubId}:
@@ -328,7 +328,7 @@ paths:
           schema:
             type: string
       responses:
-        "200":
+        '200':
           description: The request has succeeded.
           content:
             application/json:
@@ -336,7 +336,7 @@ paths:
                 type: object
                 properties:
                   stats:
-                    $ref: "#/components/schemas/UserStats"
+                    $ref: '#/components/schemas/UserStats'
                 required:
                   - stats
 security:
@@ -362,9 +362,9 @@ components:
         iconUrl:
           type: string
         identicon:
-          $ref: "#/components/schemas/Identicon"
+          $ref: '#/components/schemas/Identicon'
         mostUsedLanguage:
-          $ref: "#/components/schemas/Language"
+          $ref: '#/components/schemas/Language'
     Community:
       type: object
       required:
@@ -425,15 +425,15 @@ components:
         - bestIssuer
       properties:
         bestReviewer:
-          $ref: "#/components/schemas/Card"
+          $ref: '#/components/schemas/Card'
         bestContributor:
-          $ref: "#/components/schemas/Card"
+          $ref: '#/components/schemas/Card'
         bestCommitter:
-          $ref: "#/components/schemas/Card"
+          $ref: '#/components/schemas/Card'
         bestPullRequester:
-          $ref: "#/components/schemas/Card"
+          $ref: '#/components/schemas/Card'
         bestIssuer:
-          $ref: "#/components/schemas/Card"
+          $ref: '#/components/schemas/Card'
     Identicon:
       type: object
       required:
@@ -442,7 +442,7 @@ components:
       properties:
         color:
           type: string
-          description: "カラーコード 例: #RRGGBB"
+          description: 'カラーコード 例: #RRGGBB'
         blocks:
           type: array
           items:
@@ -461,7 +461,7 @@ components:
           description: 言語名
         color:
           type: string
-          description: "カラーコード 例: #RRGGBB"
+          description: 'カラーコード 例: #RRGGBB'
     UserStats:
       type: object
       required:
@@ -473,14 +473,14 @@ components:
         contributions:
           type: array
           items:
-            $ref: "#/components/schemas/Contribution"
+            $ref: '#/components/schemas/Contribution'
         totalContribution:
           type: integer
           format: int32
         mostUsedLanguage:
-          $ref: "#/components/schemas/Language"
+          $ref: '#/components/schemas/Language'
         contributionDetail:
-          $ref: "#/components/schemas/ContributionDetail"
+          $ref: '#/components/schemas/ContributionDetail'
   securitySchemes:
     BearerAuth:
       type: http
