@@ -10,7 +10,6 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -30,7 +29,7 @@ func TestRemoveCardFromDeck(t *testing.T) {
 			name: "正常にカードをデッキから削除できる",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					RemoveCardFromDeckFunc: func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error) {
+					RemoveCardFromDeckFunc: func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return &domain.Card{
 							ID:       domain.NewCardID(),
 							GithubID: targetGithubID,
@@ -62,7 +61,7 @@ func TestRemoveCardFromDeck(t *testing.T) {
 			name: "カードの削除に失敗した場合",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					RemoveCardFromDeckFunc: func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error) {
+					RemoveCardFromDeckFunc: func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return nil, fmt.Errorf("card not found in deck")
 					},
 				}
@@ -75,7 +74,7 @@ func TestRemoveCardFromDeck(t *testing.T) {
 			name: "存在しないカードを削除しようとした場合",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					RemoveCardFromDeckFunc: func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error) {
+					RemoveCardFromDeckFunc: func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return nil, fmt.Errorf("card does not exist")
 					},
 				}

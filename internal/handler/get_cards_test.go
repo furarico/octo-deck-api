@@ -9,7 +9,6 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +27,7 @@ func TestGetCards(t *testing.T) {
 			name: "正常にカード一覧を取得できる",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetAllCardsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error) {
+					GetAllCardsFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) ([]domain.Card, error) {
 						return []domain.Card{
 							{
 								ID:       domain.NewCardID(),
@@ -81,7 +80,7 @@ func TestGetCards(t *testing.T) {
 			name: "空の結果を正常に返せる",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetAllCardsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error) {
+					GetAllCardsFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) ([]domain.Card, error) {
 						return []domain.Card{}, nil
 					},
 				}

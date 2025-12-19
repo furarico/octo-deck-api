@@ -10,7 +10,6 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +28,7 @@ func TestGetCommunity(t *testing.T) {
 			name: "正常にコミュニティを取得できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityWithHighlightedCardFunc: func(ctx context.Context, id string, githubClient *github.Client) (*domain.Community, *domain.HighlightedCard, error) {
+					GetCommunityWithHighlightedCardFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
 						community := &domain.Community{
 							ID:   domain.NewCommunityID(),
 							Name: "Test Community",
@@ -58,7 +57,7 @@ func TestGetCommunity(t *testing.T) {
 			name: "コミュニティが見つからない場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityWithHighlightedCardFunc: func(ctx context.Context, id string, githubClient *github.Client) (*domain.Community, *domain.HighlightedCard, error) {
+					GetCommunityWithHighlightedCardFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
 						return nil, nil, fmt.Errorf("community not found: id=%s", id)
 					},
 				}

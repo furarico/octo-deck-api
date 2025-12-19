@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"gorm.io/gorm"
 )
 
@@ -39,7 +38,7 @@ func NewCardService(cardRepo CardRepository, identiconGenerator IdenticonGenerat
 }
 
 // GetAllCards は自分が集めたカードを全て取得する
-func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error) {
+func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubClient GitHubClient) ([]domain.Card, error) {
 	cards, err := s.cardRepo.FindAll(githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all cards: %w", err)
@@ -56,7 +55,7 @@ func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubCl
 }
 
 // GetCardByGitHubID は指定されたGitHub IDのカードを取得する
-func (s *CardService) GetCardByGitHubID(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+func (s *CardService) GetCardByGitHubID(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error) {
 	card, err := s.cardRepo.FindByGitHubID(githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get card by github id: %w", err)
@@ -75,7 +74,7 @@ func (s *CardService) GetCardByGitHubID(ctx context.Context, githubID string, gi
 }
 
 // GetMyCard は自分のカードを取得する
-func (s *CardService) GetMyCard(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+func (s *CardService) GetMyCard(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error) {
 	card, err := s.cardRepo.FindMyCard(githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get my card: %w", err)
@@ -94,7 +93,7 @@ func (s *CardService) GetMyCard(ctx context.Context, githubID string, githubClie
 }
 
 // GetOrCreateMyCard は自分のカードを取得し、存在しない場合は新規作成する
-func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error) {
 	card, err := s.cardRepo.FindMyCard(githubID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("failed to get my card: %w", err)
@@ -122,7 +121,7 @@ func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, gi
 }
 
 // AddCardToDeck はカードをデッキに追加する
-func (s *CardService) AddCardToDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error) {
+func (s *CardService) AddCardToDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient GitHubClient) (*domain.Card, error) {
 	// 追加対象のカードを取得
 	card, err := s.cardRepo.FindByGitHubID(targetGithubID)
 	if err != nil {
@@ -146,7 +145,7 @@ func (s *CardService) AddCardToDeck(ctx context.Context, collectorGithubID strin
 }
 
 // RemoveCardFromDeck はカードをデッキから削除する
-func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error) {
+func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient GitHubClient) (*domain.Card, error) {
 	// 削除対象のカードを取得
 	card, err := s.cardRepo.FindByGitHubID(targetGithubID)
 	if err != nil {
@@ -170,7 +169,7 @@ func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID 
 }
 
 // enrichCardWithGitHubInfo はGitHub APIからユーザー情報を取得してCardに設定する
-func enrichCardWithGitHubInfo(ctx context.Context, card *domain.Card, githubClient *github.Client) error {
+func enrichCardWithGitHubInfo(ctx context.Context, card *domain.Card, githubClient GitHubClient) error {
 	githubID, err := strconv.ParseInt(card.GithubID, 10, 64)
 	if err != nil {
 		return fmt.Errorf("invalid github id: %w", err)

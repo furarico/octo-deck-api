@@ -4,19 +4,18 @@ import (
 	"context"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 )
 
 // MockCommunityService はテスト用のモックサービス
 type MockCommunityService struct {
-	GetAllCommunitiesFunc              func(githubID string) ([]domain.Community, error)
-	GetCommunityByIDFunc               func(id string) (*domain.Community, error)
-	GetCommunityWithHighlightedCardFunc func(ctx context.Context, id string, githubClient *github.Client) (*domain.Community, *domain.HighlightedCard, error)
-	GetCommunityCardsFunc              func(id string) ([]domain.Card, error)
-	CreateCommunityFunc                func(name string) (*domain.Community, error)
-	DeleteCommunityFunc                func(id string) error
-	AddCardToCommunityFunc             func(communityID string, cardID string) error
-	RemoveCardFromCommunityFunc        func(communityID string, cardID string) error
+	GetAllCommunitiesFunc               func(githubID string) ([]domain.Community, error)
+	GetCommunityByIDFunc                func(id string) (*domain.Community, error)
+	GetCommunityWithHighlightedCardFunc func(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
+	GetCommunityCardsFunc               func(id string) ([]domain.Card, error)
+	CreateCommunityFunc                 func(name string) (*domain.Community, error)
+	DeleteCommunityFunc                 func(id string) error
+	AddCardToCommunityFunc              func(communityID string, cardID string) error
+	RemoveCardFromCommunityFunc         func(communityID string, cardID string) error
 }
 
 func NewMockCommunityService() *MockCommunityService {
@@ -37,7 +36,7 @@ func (m *MockCommunityService) GetCommunityByID(id string) (*domain.Community, e
 	return nil, nil
 }
 
-func (m *MockCommunityService) GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient *github.Client) (*domain.Community, *domain.HighlightedCard, error) {
+func (m *MockCommunityService) GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
 	if m.GetCommunityWithHighlightedCardFunc != nil {
 		return m.GetCommunityWithHighlightedCardFunc(ctx, id, githubClient)
 	}

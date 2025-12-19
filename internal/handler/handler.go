@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
+	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,24 +22,24 @@ const (
 
 // CardServiceInterface はハンドラーが必要とするサービスのインターフェース
 type CardServiceInterface interface {
-	GetAllCards(ctx context.Context, githubID string, githubClient *github.Client) ([]domain.Card, error)
-	GetCardByGitHubID(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error)
-	GetMyCard(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error)
-	GetOrCreateMyCard(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error)
-	AddCardToDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error)
-	RemoveCardFromDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient *github.Client) (*domain.Card, error)
+	GetAllCards(ctx context.Context, githubID string, githubClient service.GitHubClient) ([]domain.Card, error)
+	GetCardByGitHubID(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
+	GetMyCard(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
+	GetOrCreateMyCard(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
+	AddCardToDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient service.GitHubClient) (*domain.Card, error)
+	RemoveCardFromDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient service.GitHubClient) (*domain.Card, error)
 }
 
 // StatsServiceInterface はハンドラーが必要とする統計サービスのインターフェース
 type StatsServiceInterface interface {
-	GetUserStats(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Stats, error)
+	GetUserStats(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Stats, error)
 }
 
 // CommunityServiceInterface はハンドラーが必要とするコミュニティサービスのインターフェース
 type CommunityServiceInterface interface {
 	GetAllCommunities(githubID string) ([]domain.Community, error)
 	GetCommunityByID(id string) (*domain.Community, error)
-	GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient *github.Client) (*domain.Community, *domain.HighlightedCard, error)
+	GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
 	GetCommunityCards(id string) ([]domain.Card, error)
 	CreateCommunity(name string) (*domain.Community, error)
 	DeleteCommunity(id string) error
@@ -82,9 +82,9 @@ func getRequestContext(ctx context.Context) context.Context {
 }
 
 // context.ContextからGitHub Clientを取得するためのヘルパー関数
-func getGitHubClient(ctx context.Context) (*github.Client, error) {
+func getGitHubClient(ctx context.Context) (service.GitHubClient, error) {
 	reqCtx := getRequestContext(ctx)
-	client, ok := reqCtx.Value(GitHubClientKey).(*github.Client)
+	client, ok := reqCtx.Value(GitHubClientKey).(service.GitHubClient)
 	if !ok {
 		return nil, errors.New("github_client not found in context")
 	}

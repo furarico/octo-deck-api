@@ -11,7 +11,6 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -30,7 +29,7 @@ func TestGetMyStats(t *testing.T) {
 			name: "正常に自分の統計情報を取得できる",
 			setupMock: func() *service.MockStatsService {
 				return &service.MockStatsService{
-					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Stats, error) {
+					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Stats, error) {
 						return &domain.Stats{
 							Contributions: []domain.Contribution{
 								{Date: time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC), Count: 10},
@@ -59,7 +58,7 @@ func TestGetMyStats(t *testing.T) {
 			name: "統計情報の取得に失敗した場合",
 			setupMock: func() *service.MockStatsService {
 				return &service.MockStatsService{
-					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Stats, error) {
+					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Stats, error) {
 						return nil, fmt.Errorf("failed to fetch stats")
 					},
 				}
@@ -71,7 +70,7 @@ func TestGetMyStats(t *testing.T) {
 			name: "コントリビューションが0件の場合",
 			setupMock: func() *service.MockStatsService {
 				return &service.MockStatsService{
-					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Stats, error) {
+					GetUserStatsFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Stats, error) {
 						return &domain.Stats{
 							Contributions: []domain.Contribution{},
 						}, nil
