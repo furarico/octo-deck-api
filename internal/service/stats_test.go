@@ -32,15 +32,15 @@ func TestGetUserStats(t *testing.T) {
 	tests := []struct {
 		name        string
 		githubID    string
-		setupGitHub func() *MockGitHubClient
+		setupGitHub func() *github.MockClient
 		wantErr     bool
 		wantErrMsg  string
 	}{
 		{
 			name:     "正常に統計情報を取得できる",
 			githubID: "12345",
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserStatsFunc: func(ctx context.Context, githubID int64) (*github.UserStats, error) {
 						return createTestUserStats(), nil
 					},
@@ -51,8 +51,8 @@ func TestGetUserStats(t *testing.T) {
 		{
 			name:     "無効なGitHubIDの場合",
 			githubID: "invalid_id",
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{}
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{}
 			},
 			wantErr:    true,
 			wantErrMsg: "invalid github id",
@@ -60,8 +60,8 @@ func TestGetUserStats(t *testing.T) {
 		{
 			name:     "GitHubClientエラーが発生した場合",
 			githubID: "12345",
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserStatsFunc: func(ctx context.Context, githubID int64) (*github.UserStats, error) {
 						return nil, fmt.Errorf("github api error")
 					},
@@ -73,8 +73,8 @@ func TestGetUserStats(t *testing.T) {
 		{
 			name:     "ToDomainStatsで日付パースエラーが発生した場合",
 			githubID: "12345",
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserStatsFunc: func(ctx context.Context, githubID int64) (*github.UserStats, error) {
 						// 無効な日付形式を含むUserStatsを返す
 						return &github.UserStats{
@@ -100,8 +100,8 @@ func TestGetUserStats(t *testing.T) {
 		{
 			name:     "空のContributionsの場合でも正常に処理できる",
 			githubID: "12345",
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserStatsFunc: func(ctx context.Context, githubID int64) (*github.UserStats, error) {
 						return &github.UserStats{
 							Contributions:         []github.Contribution{},
