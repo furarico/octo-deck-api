@@ -11,7 +11,7 @@ type MockCommunityService struct {
 	GetAllCommunitiesFunc               func(githubID string) ([]domain.Community, error)
 	GetCommunityByIDFunc                func(id string) (*domain.Community, error)
 	GetCommunityWithHighlightedCardFunc func(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
-	GetCommunityCardsFunc               func(id string) ([]domain.Card, error)
+	GetCommunityCardsFunc               func(ctx context.Context, id string, githubClient GitHubClient) ([]domain.Card, error)
 	CreateCommunityFunc                 func(name string) (*domain.Community, error)
 	DeleteCommunityFunc                 func(id string) error
 	AddCardToCommunityFunc              func(communityID string, cardID string) error
@@ -43,9 +43,9 @@ func (m *MockCommunityService) GetCommunityWithHighlightedCard(ctx context.Conte
 	return nil, nil, nil
 }
 
-func (m *MockCommunityService) GetCommunityCards(id string) ([]domain.Card, error) {
+func (m *MockCommunityService) GetCommunityCards(ctx context.Context, id string, githubClient GitHubClient) ([]domain.Card, error) {
 	if m.GetCommunityCardsFunc != nil {
-		return m.GetCommunityCardsFunc(id)
+		return m.GetCommunityCardsFunc(ctx, id, githubClient)
 	}
 	return []domain.Card{}, nil
 }
