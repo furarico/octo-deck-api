@@ -10,7 +10,6 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -20,17 +19,17 @@ func TestAddCardToCommunity(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	tests := []struct {
-		name              string
-		setupCardMock     func() *service.MockCardService
+		name               string
+		setupCardMock      func() *service.MockCardService
 		setupCommunityMock func() *service.MockCommunityService
-		wantCode          int
-		validate          func(t *testing.T, w *httptest.ResponseRecorder)
+		wantCode           int
+		validate           func(t *testing.T, w *httptest.ResponseRecorder)
 	}{
 		{
 			name: "正常にコミュニティにカードを追加できる",
 			setupCardMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return &domain.Card{
 							ID:       domain.NewCardID(),
 							GithubID: "test_user",
@@ -68,7 +67,7 @@ func TestAddCardToCommunity(t *testing.T) {
 			name: "カードが見つからない場合",
 			setupCardMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return nil, fmt.Errorf("card not found")
 					},
 				}
@@ -83,7 +82,7 @@ func TestAddCardToCommunity(t *testing.T) {
 			name: "コミュニティへのカード追加でエラーが発生した場合",
 			setupCardMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+					GetMyCardFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return &domain.Card{
 							ID:       domain.NewCardID(),
 							GithubID: "test_user",

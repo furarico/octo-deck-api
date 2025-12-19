@@ -4,6 +4,7 @@ import (
 	"github.com/google/go-github/v80/github"
 )
 
+// Client はGitHub APIクライアントの実装
 type Client struct {
 	client *github.Client
 }

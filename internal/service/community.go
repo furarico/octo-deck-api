@@ -56,7 +56,7 @@ func (s *CommunityService) GetCommunityByID(id string) (*domain.Community, error
 }
 
 // GetCommunityWithHighlightedCard はコミュニティとHighlightedCardを取得する
-func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient *github.Client) (*domain.Community, *domain.HighlightedCard, error) {
+func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
 	// コミュニティを取得
 	community, err := s.communityRepo.FindByID(id)
 	if err != nil {
@@ -90,12 +90,12 @@ func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, 
 			continue
 		}
 		usernames = append(usernames, userInfo.Login)
-		
+
 		// カードにGitHub情報を設定
 		card.UserName = userInfo.Login
 		card.FullName = userInfo.Name
 		card.IconUrl = userInfo.AvatarURL
-		
+
 		// MostUsedLanguageを取得
 		langName, langColor, err := githubClient.GetMostUsedLanguage(ctx, userInfo.Login)
 		if err == nil {
@@ -104,7 +104,7 @@ func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, 
 				Color:        langColor,
 			}
 		}
-		
+
 		cardByUsername[userInfo.Login] = card
 	}
 

@@ -10,7 +10,6 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +28,7 @@ func TestGetMyCard(t *testing.T) {
 			name: "正常に自分のカードを取得できる",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetOrCreateMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+					GetOrCreateMyCardFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return &domain.Card{
 							ID:       domain.NewCardID(),
 							GithubID: "my_user",
@@ -60,7 +59,7 @@ func TestGetMyCard(t *testing.T) {
 			name: "カード作成に失敗した場合はエラーを返す",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetOrCreateMyCardFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+					GetOrCreateMyCardFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return nil, fmt.Errorf("failed to create card")
 					},
 				}

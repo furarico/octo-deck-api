@@ -10,7 +10,6 @@ import (
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/furarico/octo-deck-api/internal/service"
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +28,7 @@ func TestGetCard(t *testing.T) {
 			name: "正常に特定のカードを取得できる",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetCardByGitHubIDFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+					GetCardByGitHubIDFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return &domain.Card{
 							ID:       domain.NewCardID(),
 							GithubID: "john_doe",
@@ -57,7 +56,7 @@ func TestGetCard(t *testing.T) {
 			name: "カードが見つからない場合はエラーを返す",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetCardByGitHubIDFunc: func(ctx context.Context, githubID string, githubClient *github.Client) (*domain.Card, error) {
+					GetCardByGitHubIDFunc: func(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error) {
 						return nil, fmt.Errorf("card not found: githubID=%s", githubID)
 					},
 				}
@@ -98,7 +97,7 @@ func TestGetCard(t *testing.T) {
 // setTestContext はテスト用のコンテキストを設定するミドルウェア
 func setTestContext(c *gin.Context) {
 	ctx := c.Request.Context()
-	ctx = context.WithValue(ctx, GitHubClientKey, (*github.Client)(nil))
+	ctx = context.WithValue(ctx, GitHubClientKey, service.NewMockGitHubClient())
 	ctx = context.WithValue(ctx, GitHubIDKey, "test_user")
 	c.Request = c.Request.WithContext(ctx)
 	c.Next()
