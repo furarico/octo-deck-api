@@ -2,6 +2,7 @@ package github
 
 type UserInfo struct {
 	ID        int64
+	NodeID    string
 	Login     string
 	Name      string
 	AvatarURL string
@@ -17,11 +18,11 @@ type ContributionStats struct {
 }
 
 type UserStats struct {
-	Contributions          []Contribution
-	MostUsedLanguage       string
-	MostUsedLanguageColor  string
-	TotalContribution      int
-	ContributionDetail     ContributionDetail
+	Contributions         []Contribution
+	MostUsedLanguage      string
+	MostUsedLanguageColor string
+	TotalContribution     int
+	ContributionDetail    ContributionDetail
 }
 
 type ContributionDetail struct {

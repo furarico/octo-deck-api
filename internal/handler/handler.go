@@ -16,6 +16,7 @@ type contextKey string
 const (
 	GitHubClientKey contextKey = "github_client"
 	GitHubIDKey     contextKey = "github_id"
+	GitHubNodeIDKey contextKey = "github_node_id"
 	GitHubLoginKey  contextKey = "github_login"
 	GitHubNameKey   contextKey = "github_name"
 	GitHubAvatarKey contextKey = "github_avatar_url"

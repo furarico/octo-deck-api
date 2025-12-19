@@ -41,6 +41,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		ctx := c.Request.Context()
 		ctx = context.WithValue(ctx, handler.GitHubClientKey, ghClient)
 		ctx = context.WithValue(ctx, handler.GitHubIDKey, strconv.FormatInt(user.ID, 10))
+		ctx = context.WithValue(ctx, handler.GitHubNodeIDKey, user.NodeID)
 		ctx = context.WithValue(ctx, handler.GitHubLoginKey, user.Login)
 		ctx = context.WithValue(ctx, handler.GitHubNameKey, user.Name)
 		ctx = context.WithValue(ctx, handler.GitHubAvatarKey, user.AvatarURL)

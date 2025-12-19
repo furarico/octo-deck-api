@@ -44,6 +44,7 @@ func (c *Client) toUserInfo(user *github.User) *UserInfo {
 
 	return &UserInfo{
 		ID:        user.GetID(),
+		NodeID:    user.GetNodeID(),
 		Login:     user.GetLogin(),
 		Name:      name,
 		AvatarURL: user.GetAvatarURL(),
