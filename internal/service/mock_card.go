@@ -11,7 +11,7 @@ type MockCardService struct {
 	GetAllCardsFunc        func(ctx context.Context, githubID string, githubClient GitHubClient) ([]domain.Card, error)
 	GetCardByGitHubIDFunc  func(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error)
 	GetMyCardFunc          func(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error)
-	GetOrCreateMyCardFunc  func(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error)
+	GetOrCreateMyCardFunc  func(ctx context.Context, githubID string, nodeID string, githubClient GitHubClient) (*domain.Card, error)
 	AddCardToDeckFunc      func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient GitHubClient) (*domain.Card, error)
 	RemoveCardFromDeckFunc func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient GitHubClient) (*domain.Card, error)
 }
@@ -41,9 +41,9 @@ func (m *MockCardService) GetMyCard(ctx context.Context, githubID string, github
 	return nil, nil
 }
 
-func (m *MockCardService) GetOrCreateMyCard(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error) {
+func (m *MockCardService) GetOrCreateMyCard(ctx context.Context, githubID string, nodeID string, githubClient GitHubClient) (*domain.Card, error) {
 	if m.GetOrCreateMyCardFunc != nil {
-		return m.GetOrCreateMyCardFunc(ctx, githubID, githubClient)
+		return m.GetOrCreateMyCardFunc(ctx, githubID, nodeID, githubClient)
 	}
 	return nil, nil
 }

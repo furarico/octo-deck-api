@@ -5,6 +5,7 @@ erDiagram
     CARDS {
         string id PK
         string github_id
+        string node_id
         datetime created_at
         string color
         json blocks_data

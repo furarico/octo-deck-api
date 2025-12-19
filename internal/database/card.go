@@ -12,6 +12,7 @@ import (
 type Card struct {
 	ID         uuid.UUID       `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	GithubID   string          `gorm:"not null"`
+	NodeID     string          `gorm:"not null"`
 	CreatedAt  time.Time       `gorm:"autoCreateTime"`
 	Color      string          `gorm:"not null"`
 	BlocksData json.RawMessage `gorm:"type:jsonb;not null"`
@@ -31,6 +32,7 @@ func (c *Card) ToDomain() *domain.Card {
 	return &domain.Card{
 		ID:       domain.CardID(c.ID),
 		GithubID: c.GithubID,
+		NodeID:   c.NodeID,
 		Color:    domain.Color(c.Color),
 		Blocks:   blocks,
 	}
@@ -42,6 +44,7 @@ func CardFromDomain(card *domain.Card) *Card {
 	return &Card{
 		ID:         uuid.UUID(card.ID),
 		GithubID:   card.GithubID,
+		NodeID:     card.NodeID,
 		Color:      string(card.Color),
 		BlocksData: blocksData,
 	}

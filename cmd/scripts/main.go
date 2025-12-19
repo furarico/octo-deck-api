@@ -21,6 +21,7 @@ import (
 // GitHubMember represents a member from the GitHub Organization Members API
 type GitHubMember struct {
 	ID        int64  `json:"id"`
+	NodeID    string `json:"node_id"`
 	Login     string `json:"login"`
 	AvatarURL string `json:"avatar_url"`
 }
@@ -94,7 +95,7 @@ func main() {
 		}
 
 		// カード作成
-		card := domain.NewCard(githubID, color, blocks, domain.Language{})
+		card := domain.NewCard(githubID, member.NodeID, color, blocks, domain.Language{})
 		if err := cardRepo.Create(card); err != nil {
 			log.Printf("Failed to create card for %s (ID: %s): %v", member.Login, githubID, err)
 			failed++

@@ -35,6 +35,7 @@ func createTestCard(githubID string) *domain.Card {
 	return &domain.Card{
 		ID:       domain.NewCardID(),
 		GithubID: githubID,
+		NodeID:   "U_" + githubID, // テスト用のNodeID
 		Color:    domain.Color("#000000"),
 		Blocks:   domain.Blocks{},
 	}
@@ -94,13 +95,13 @@ func TestGetAllCards(t *testing.T) {
 			},
 			setupGitHub: func() *github.MockClient {
 				return &github.MockClient{
-					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
+					GetUsersByIDsFunc: func(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
 				}
 			},
 			wantErr:    true,
-			wantErrMsg: "failed to get github user info",
+			wantErrMsg: "failed to get users info",
 		},
 		{
 			name:     "無効なGitHubIDの場合",
@@ -529,7 +530,7 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			githubClient := tt.setupGitHub()
 
 			service := NewCardService(cardRepo, identiconGen)
-			card, err := service.GetOrCreateMyCard(ctx, tt.githubID, githubClient)
+			card, err := service.GetOrCreateMyCard(ctx, tt.githubID, "MDQ6VXNlcjEyMzQ1", githubClient)
 
 			if tt.wantErr {
 				if err == nil {

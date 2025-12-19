@@ -20,7 +20,12 @@ func (h *Handler) GetMyCard(ctx context.Context, request api.GetMyCardRequestObj
 		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
-	card, err := h.cardService.GetOrCreateMyCard(ctx, githubID, githubClient)
+	nodeID, err := getGitHubNodeID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unauthorized: %w", err)
+	}
+
+	card, err := h.cardService.GetOrCreateMyCard(ctx, githubID, nodeID, githubClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get or create card: %w", err)
 	}
