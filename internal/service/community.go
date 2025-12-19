@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
@@ -80,32 +79,13 @@ func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, 
 	// ユーザー名リストを作成（GitHub APIからユーザー情報を取得）
 	usernames := make([]string, 0, len(cards))
 	cardByUsername := make(map[string]domain.Card)
-	for _, card := range cards {
-		githubID, err := strconv.ParseInt(card.GithubID, 10, 64)
-		if err != nil {
+	for i := range cards {
+		// 共通関数を使用してカードにGitHub情報を設定
+		if err := EnrichCardWithGitHubInfo(ctx, &cards[i], githubClient); err != nil {
 			continue
 		}
-		userInfo, err := githubClient.GetUserByID(ctx, githubID)
-		if err != nil {
-			continue
-		}
-		usernames = append(usernames, userInfo.Login)
-
-		// カードにGitHub情報を設定
-		card.UserName = userInfo.Login
-		card.FullName = userInfo.Name
-		card.IconUrl = userInfo.AvatarURL
-
-		// MostUsedLanguageを取得
-		langName, langColor, err := githubClient.GetMostUsedLanguage(ctx, userInfo.Login)
-		if err == nil {
-			card.MostUsedLanguage = domain.Language{
-				LanguageName: langName,
-				Color:        langColor,
-			}
-		}
-
-		cardByUsername[userInfo.Login] = card
+		usernames = append(usernames, cards[i].UserName)
+		cardByUsername[cards[i].UserName] = cards[i]
 	}
 
 	// ユーザーがいない場合は空のHighlightedCardを返す

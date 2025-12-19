@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/furarico/octo-deck-api/internal/database"
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/google/uuid"
@@ -66,8 +68,10 @@ func (r *communityRepository) FindCards(id string) ([]domain.Card, error) {
 // Create はコミュニティを作成する
 func (r *communityRepository) Create(community *domain.Community) error {
 	dbCommunity := &database.Community{
-		ID:   uuid.UUID(community.ID),
-		Name: community.Name,
+		ID:        uuid.UUID(community.ID),
+		Name:      community.Name,
+		StartedAt: community.StartedAt,
+		EndedAt:   community.EndedAt,
 	}
 
 	return r.db.Create(dbCommunity).Error
@@ -80,9 +84,18 @@ func (r *communityRepository) Delete(id string) error {
 
 // AddCard はコミュニティにカードを追加する
 func (r *communityRepository) AddCard(communityID string, cardID string) error {
+	communityUUID, err := parseUUID(communityID)
+	if err != nil {
+		return fmt.Errorf("invalid community id: %w", err)
+	}
+	cardUUID, err := parseUUID(cardID)
+	if err != nil {
+		return fmt.Errorf("invalid card id: %w", err)
+	}
+
 	communityCard := &database.CommunityCard{
-		CommunityID: parseUUID(communityID),
-		CardID:      parseUUID(cardID),
+		CommunityID: communityUUID,
+		CardID:      cardUUID,
 	}
 
 	return r.db.Create(communityCard).Error
@@ -90,13 +103,21 @@ func (r *communityRepository) AddCard(communityID string, cardID string) error {
 
 // RemoveCard はコミュニティからカードを削除する
 func (r *communityRepository) RemoveCard(communityID string, cardID string) error {
+	communityUUID, err := parseUUID(communityID)
+	if err != nil {
+		return fmt.Errorf("invalid community id: %w", err)
+	}
+	cardUUID, err := parseUUID(cardID)
+	if err != nil {
+		return fmt.Errorf("invalid card id: %w", err)
+	}
+
 	return r.db.
-		Where("community_id = ? AND card_id = ?", communityID, cardID).
+		Where("community_id = ? AND card_id = ?", communityUUID, cardUUID).
 		Delete(&database.CommunityCard{}).Error
 }
 
 // parseUUID はstringをuuid.UUIDに変換する
-func parseUUID(s string) uuid.UUID {
-	id, _ := uuid.Parse(s)
-	return id
+func parseUUID(s string) (uuid.UUID, error) {
+	return uuid.Parse(s)
 }
