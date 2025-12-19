@@ -76,7 +76,7 @@ func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, 
 		return community, &domain.HighlightedCard{}, nil
 	}
 
-	// バッチ処理でGitHub情報を補完（N+1問題解消）
+	// バッチ処理でGitHub情報を補完
 	if err := EnrichCardsWithGitHubInfo(ctx, cards, githubClient); err != nil {
 		return nil, nil, fmt.Errorf("failed to enrich cards with github info: %w", err)
 	}

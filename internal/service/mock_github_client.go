@@ -16,9 +16,9 @@ type MockGitHubClient struct {
 	GetContributionStatsFunc  func(ctx context.Context, githubID int64) (*github.ContributionStats, error)
 	GetUsersContributionsFunc func(ctx context.Context, usernames []string, from, to time.Time) ([]github.UserContributionStats, error)
 	// バッチ取得メソッド（N+1問題解消用）
-	GetUsersByIDsFunc      func(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error)
-	GetUsersByLoginsFunc   func(ctx context.Context, logins []string) (map[string]*github.UserInfo, error)
-	GetUsersLanguagesFunc  func(ctx context.Context, logins []string) (map[string]*github.LanguageInfo, error)
+	GetUsersByIDsFunc     func(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error)
+	GetUsersByLoginsFunc  func(ctx context.Context, logins []string) (map[string]*github.UserInfo, error)
+	GetUsersLanguagesFunc func(ctx context.Context, logins []string) (map[string]*github.LanguageInfo, error)
 }
 
 // MockGitHubClientがGitHubClientインターフェースを実装していることを確認

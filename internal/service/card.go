@@ -44,7 +44,7 @@ func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubCl
 		return nil, fmt.Errorf("failed to get all cards: %w", err)
 	}
 
-	// バッチ処理でGitHub情報を補完（N+1問題解消）
+	// バッチ処理でGitHub情報を補完
 	if err := EnrichCardsWithGitHubInfo(ctx, cards, githubClient); err != nil {
 		return nil, err
 	}
