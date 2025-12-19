@@ -186,7 +186,7 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 		name        string
 		communityID string
 		setupRepo   func() *repository.MockCommunityRepository
-		setupGitHub func() *MockGitHubClient
+		setupGitHub func() *github.MockClient
 		wantErr     bool
 		wantErrMsg  string
 	}{
@@ -206,8 +206,8 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
 						return &github.UserInfo{
 							ID:        id,
@@ -238,8 +238,8 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{}
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{}
 			},
 			wantErr:    true,
 			wantErrMsg: "community not found",
@@ -254,8 +254,8 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{}
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{}
 			},
 			wantErr:    true,
 			wantErrMsg: "failed to get community by id",
@@ -273,8 +273,8 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{}
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{}
 			},
 			wantErr:    true,
 			wantErrMsg: "failed to get community cards",
@@ -292,8 +292,8 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{}
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{}
 			},
 			wantErr: false,
 		},
@@ -310,8 +310,8 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: func() *MockGitHubClient {
-				return &MockGitHubClient{
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
 					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
 						return &github.UserInfo{
 							ID:        id,
