@@ -46,7 +46,7 @@ func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubCl
 
 	// 各カードにGitHub情報を補完
 	for i := range cards {
-		if err := enrichCardWithGitHubInfo(ctx, &cards[i], githubClient); err != nil {
+		if err := EnrichCardWithGitHubInfo(ctx, &cards[i], githubClient); err != nil {
 			return nil, err
 		}
 	}
@@ -66,7 +66,7 @@ func (s *CardService) GetCardByGitHubID(ctx context.Context, githubID string, gi
 	}
 
 	// GitHub APIからユーザー情報を取得して補完
-	if err := enrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
+	if err := EnrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
 		return nil, err
 	}
 
@@ -85,7 +85,7 @@ func (s *CardService) GetMyCard(ctx context.Context, githubID string, githubClie
 	}
 
 	// GitHub APIからユーザー情報を取得して補完
-	if err := enrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
+	if err := EnrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
 		return nil, err
 	}
 
@@ -113,7 +113,7 @@ func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, gi
 	}
 
 	// GitHub APIからユーザー情報を取得して補完
-	if err := enrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
+	if err := EnrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
 		return nil, err
 	}
 
@@ -137,7 +137,7 @@ func (s *CardService) AddCardToDeck(ctx context.Context, collectorGithubID strin
 	}
 
 	// GitHub APIからユーザー情報を取得して補完
-	if err := enrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
+	if err := EnrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
 		return nil, err
 	}
 
@@ -161,15 +161,15 @@ func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID 
 	}
 
 	// GitHub APIからユーザー情報を取得して補完
-	if err := enrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
+	if err := EnrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
 		return nil, err
 	}
 
 	return card, nil
 }
 
-// enrichCardWithGitHubInfo はGitHub APIからユーザー情報を取得してCardに設定する
-func enrichCardWithGitHubInfo(ctx context.Context, card *domain.Card, githubClient GitHubClient) error {
+// EnrichCardWithGitHubInfo はGitHub APIからユーザー情報を取得してCardに設定する
+func EnrichCardWithGitHubInfo(ctx context.Context, card *domain.Card, githubClient GitHubClient) error {
 	githubID, err := strconv.ParseInt(card.GithubID, 10, 64)
 	if err != nil {
 		return fmt.Errorf("invalid github id: %w", err)
