@@ -44,11 +44,9 @@ func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubCl
 		return nil, fmt.Errorf("failed to get all cards: %w", err)
 	}
 
-	// 各カードにGitHub情報を補完
-	for i := range cards {
-		if err := EnrichCardWithGitHubInfo(ctx, &cards[i], githubClient); err != nil {
-			return nil, err
-		}
+	// バッチ処理でGitHub情報を補完（N+1問題解消）
+	if err := EnrichCardsWithGitHubInfo(ctx, cards, githubClient); err != nil {
+		return nil, err
 	}
 
 	return cards, nil
@@ -168,7 +166,7 @@ func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID 
 	return card, nil
 }
 
-// EnrichCardWithGitHubInfo はGitHub APIからユーザー情報を取得してCardに設定する
+// EnrichCardWithGitHubInfo はGitHub APIからユーザー情報を取得してCardに設定する（単一カード用）
 func EnrichCardWithGitHubInfo(ctx context.Context, card *domain.Card, githubClient GitHubClient) error {
 	githubID, err := strconv.ParseInt(card.GithubID, 10, 64)
 	if err != nil {
@@ -193,6 +191,70 @@ func EnrichCardWithGitHubInfo(ctx context.Context, card *domain.Card, githubClie
 	card.MostUsedLanguage = domain.Language{
 		LanguageName: langName,
 		Color:        langColor,
+	}
+
+	return nil
+}
+
+// EnrichCardsWithGitHubInfo はGitHub APIから複数ユーザーの情報を一括取得してCardsに設定する（バッチ版）
+// N+1問題を解消するため、2回のAPIコールで全カードの情報を取得する
+func EnrichCardsWithGitHubInfo(ctx context.Context, cards []domain.Card, githubClient GitHubClient) error {
+	if len(cards) == 0 {
+		return nil
+	}
+
+	// 1. 全カードのGitHub IDを収集
+	ids := make([]int64, 0, len(cards))
+	for _, card := range cards {
+		githubID, err := strconv.ParseInt(card.GithubID, 10, 64)
+		if err != nil {
+			return fmt.Errorf("invalid github id: %w", err)
+		}
+		ids = append(ids, githubID)
+	}
+
+	// 2. バッチでユーザー情報を取得
+	userInfoMap, err := githubClient.GetUsersByIDs(ctx, ids)
+	if err != nil {
+		return fmt.Errorf("failed to get users by ids: %w", err)
+	}
+
+	// 3. ログイン名リストを作成
+	logins := make([]string, 0, len(userInfoMap))
+	for _, userInfo := range userInfoMap {
+		logins = append(logins, userInfo.Login)
+	}
+
+	// 4. バッチで言語情報を取得
+	languageMap, err := githubClient.GetUsersLanguages(ctx, logins)
+	if err != nil {
+		return fmt.Errorf("failed to get users languages: %w", err)
+	}
+
+	// 5. 各カードに情報を設定
+	for i := range cards {
+		githubID, _ := strconv.ParseInt(cards[i].GithubID, 10, 64)
+		userInfo, ok := userInfoMap[githubID]
+		if !ok {
+			continue
+		}
+
+		cards[i].UserName = userInfo.Login
+		cards[i].FullName = userInfo.Name
+		cards[i].IconUrl = userInfo.AvatarURL
+
+		langInfo, ok := languageMap[userInfo.Login]
+		if ok {
+			cards[i].MostUsedLanguage = domain.Language{
+				LanguageName: langInfo.Name,
+				Color:        langInfo.Color,
+			}
+		} else {
+			cards[i].MostUsedLanguage = domain.Language{
+				LanguageName: "Unknown",
+				Color:        "#586069",
+			}
+		}
 	}
 
 	return nil

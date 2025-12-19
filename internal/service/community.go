@@ -76,16 +76,19 @@ func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, 
 		return community, &domain.HighlightedCard{}, nil
 	}
 
-	// ユーザー名リストを作成（GitHub APIからユーザー情報を取得）
+	// バッチ処理でGitHub情報を補完（N+1問題解消）
+	if err := EnrichCardsWithGitHubInfo(ctx, cards, githubClient); err != nil {
+		return nil, nil, fmt.Errorf("failed to enrich cards with github info: %w", err)
+	}
+
+	// ユーザー名リストを作成
 	usernames := make([]string, 0, len(cards))
 	cardByUsername := make(map[string]domain.Card)
-	for i := range cards {
-		// 共通関数を使用してカードにGitHub情報を設定
-		if err := EnrichCardWithGitHubInfo(ctx, &cards[i], githubClient); err != nil {
-			continue
+	for _, card := range cards {
+		if card.UserName != "" {
+			usernames = append(usernames, card.UserName)
+			cardByUsername[card.UserName] = card
 		}
-		usernames = append(usernames, cards[i].UserName)
-		cardByUsername[cards[i].UserName] = cards[i]
 	}
 
 	// ユーザーがいない場合は空のHighlightedCardを返す

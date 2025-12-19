@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 // GitHubIDからコントリビューション統計を取得する
@@ -208,4 +209,114 @@ func (c *Client) GetMostUsedLanguage(ctx context.Context, login string) (string,
 	}
 
 	return mostUsedLanguage, GetLanguageColor(mostUsedLanguage), nil
+}
+
+// LanguageInfo はユーザーの最頻言語情報を表す
+type LanguageInfo struct {
+	Name  string
+	Color string
+}
+
+// GetUsersLanguages は複数ユーザーの最頻言語を一括取得する（GraphQL使用）
+func (c *Client) GetUsersLanguages(ctx context.Context, logins []string) (map[string]*LanguageInfo, error) {
+	if len(logins) == 0 {
+		return make(map[string]*LanguageInfo), nil
+	}
+
+	// GraphQL search APIを使用して一括取得
+	userQuery := strings.Join(func() []string {
+		result := make([]string, len(logins))
+		for i, login := range logins {
+			result[i] = "user:" + login
+		}
+		return result
+	}(), " ")
+
+	query := `
+		query($q: String!) {
+			search(query: $q, type: USER, first: 100) {
+				nodes {
+					... on User {
+						login
+						repositories(first: 100, ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC) {
+							nodes {
+								languages(first: 20) {
+									edges {
+										size
+										node {
+											name
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	`
+
+	variables := map[string]interface{}{
+		"q": userQuery,
+	}
+
+	var result struct {
+		Search struct {
+			Nodes []struct {
+				Login        string `json:"login"`
+				Repositories struct {
+					Nodes []struct {
+						Languages struct {
+							Edges []struct {
+								Size int `json:"size"`
+								Node struct {
+									Name string `json:"name"`
+								} `json:"node"`
+							} `json:"edges"`
+						} `json:"languages"`
+					} `json:"nodes"`
+				} `json:"repositories"`
+			} `json:"nodes"`
+		} `json:"search"`
+	}
+
+	if err := c.executeGraphQL(ctx, query, variables, &result); err != nil {
+		return nil, fmt.Errorf("failed to get users languages: %w", err)
+	}
+
+	languageMap := make(map[string]*LanguageInfo)
+	for _, node := range result.Search.Nodes {
+		// 各ユーザーの言語統計を集計
+		languageStats := make(map[string]int)
+		for _, repo := range node.Repositories.Nodes {
+			for _, edge := range repo.Languages.Edges {
+				languageStats[edge.Node.Name] += edge.Size
+			}
+		}
+
+		// 最大の言語を見つける
+		mostUsedLanguage := ""
+		maxSize := 0
+		for lang, size := range languageStats {
+			if size > maxSize {
+				maxSize = size
+				mostUsedLanguage = lang
+			}
+		}
+
+		// 言語が見つからない場合はデフォルト値
+		if mostUsedLanguage == "" {
+			languageMap[node.Login] = &LanguageInfo{
+				Name:  "Unknown",
+				Color: "#586069",
+			}
+		} else {
+			languageMap[node.Login] = &LanguageInfo{
+				Name:  mostUsedLanguage,
+				Color: GetLanguageColor(mostUsedLanguage),
+			}
+		}
+	}
+
+	return languageMap, nil
 }

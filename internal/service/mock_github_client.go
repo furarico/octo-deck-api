@@ -15,6 +15,10 @@ type MockGitHubClient struct {
 	GetMostUsedLanguageFunc   func(ctx context.Context, login string) (string, string, error)
 	GetContributionStatsFunc  func(ctx context.Context, githubID int64) (*github.ContributionStats, error)
 	GetUsersContributionsFunc func(ctx context.Context, usernames []string, from, to time.Time) ([]github.UserContributionStats, error)
+	// バッチ取得メソッド（N+1問題解消用）
+	GetUsersByIDsFunc      func(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error)
+	GetUsersByLoginsFunc   func(ctx context.Context, logins []string) (map[string]*github.UserInfo, error)
+	GetUsersLanguagesFunc  func(ctx context.Context, logins []string) (map[string]*github.LanguageInfo, error)
 }
 
 // MockGitHubClientがGitHubClientインターフェースを実装していることを確認
@@ -64,4 +68,50 @@ func (m *MockGitHubClient) GetUsersContributions(ctx context.Context, usernames 
 		return m.GetUsersContributionsFunc(ctx, usernames, from, to)
 	}
 	return []github.UserContributionStats{}, nil
+}
+
+func (m *MockGitHubClient) GetUsersByIDs(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error) {
+	if m.GetUsersByIDsFunc != nil {
+		return m.GetUsersByIDsFunc(ctx, ids)
+	}
+	result := make(map[int64]*github.UserInfo)
+	for _, id := range ids {
+		result[id] = &github.UserInfo{
+			ID:        id,
+			Login:     "testuser",
+			Name:      "Test User",
+			AvatarURL: "https://example.com/avatar.png",
+		}
+	}
+	return result, nil
+}
+
+func (m *MockGitHubClient) GetUsersByLogins(ctx context.Context, logins []string) (map[string]*github.UserInfo, error) {
+	if m.GetUsersByLoginsFunc != nil {
+		return m.GetUsersByLoginsFunc(ctx, logins)
+	}
+	result := make(map[string]*github.UserInfo)
+	for _, login := range logins {
+		result[login] = &github.UserInfo{
+			ID:        12345,
+			Login:     login,
+			Name:      "Test User",
+			AvatarURL: "https://example.com/avatar.png",
+		}
+	}
+	return result, nil
+}
+
+func (m *MockGitHubClient) GetUsersLanguages(ctx context.Context, logins []string) (map[string]*github.LanguageInfo, error) {
+	if m.GetUsersLanguagesFunc != nil {
+		return m.GetUsersLanguagesFunc(ctx, logins)
+	}
+	result := make(map[string]*github.LanguageInfo)
+	for _, login := range logins {
+		result[login] = &github.LanguageInfo{
+			Name:  "Go",
+			Color: "#00ADD8",
+		}
+	}
+	return result, nil
 }
