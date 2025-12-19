@@ -10,7 +10,15 @@ import (
 // 指定したコミュニティのカード一覧取得
 // (GET /communities/{id}/cards)
 func (h *Handler) GetCommunityCards(ctx context.Context, request api.GetCommunityCardsRequestObject) (api.GetCommunityCardsResponseObject, error) {
-	cards, err := h.communityService.GetCommunityCards(request.Id)
+	githubClient, err := getGitHubClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get github client: %w", err)
+	}
+
+	// リクエストコンテキストを取得
+	reqCtx := getRequestContext(ctx)
+
+	cards, err := h.communityService.GetCommunityCards(reqCtx, request.Id, githubClient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get community cards: %w", err)
 	}

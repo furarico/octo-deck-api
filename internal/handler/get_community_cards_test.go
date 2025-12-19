@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/service"
+	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/gin-gonic/gin"
 )
 
@@ -27,11 +29,11 @@ func TestGetCommunityCards(t *testing.T) {
 			name: "正常にコミュニティのカード一覧を取得できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
+					GetCommunityCardsFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) ([]domain.Card, error) {
 						return []domain.Card{
 							{
 								ID:       domain.NewCardID(),
-								GithubID: "user1",
+								GithubID: "1111",
 								UserName: "user1",
 								FullName: "User One",
 								IconUrl:  "https://example.com/user1.png",
@@ -40,7 +42,7 @@ func TestGetCommunityCards(t *testing.T) {
 							},
 							{
 								ID:       domain.NewCardID(),
-								GithubID: "user2",
+								GithubID: "2222",
 								UserName: "user2",
 								FullName: "User Two",
 								IconUrl:  "https://example.com/user2.png",
@@ -63,13 +65,20 @@ func TestGetCommunityCards(t *testing.T) {
 				if len(response.Cards) != 2 {
 					t.Errorf("カードの数が違う: 期待=2, 実際=%d", len(response.Cards))
 				}
+				// fullname / avatar url が入っていることを確認
+				if response.Cards[0].FullName == "" || response.Cards[0].IconUrl == "" {
+					t.Errorf("1枚目のカードの FullName もしくは IconUrl が空です")
+				}
+				if response.Cards[1].FullName == "" || response.Cards[1].IconUrl == "" {
+					t.Errorf("2枚目のカードの FullName もしくは IconUrl が空です")
+				}
 			},
 		},
 		{
 			name: "カードが空の場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
+					GetCommunityCardsFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) ([]domain.Card, error) {
 						return []domain.Card{}, nil
 					},
 				}
@@ -92,7 +101,7 @@ func TestGetCommunityCards(t *testing.T) {
 			name: "サービスでエラーが発生した場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
+					GetCommunityCardsFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) ([]domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
@@ -108,7 +117,13 @@ func TestGetCommunityCards(t *testing.T) {
 			mockService := tt.setupMock()
 			communityHandler := NewCommunityHandler(mockService)
 			router := gin.Default()
-			router.Use(setTestContext)
+			// GitHubクライアントをコンテキストに詰めるテスト用ミドルウェア
+			router.Use(func(c *gin.Context) {
+				mockGitHub := &github.MockClient{}
+				ctx := context.WithValue(c.Request.Context(), GitHubClientKey, service.GitHubClient(mockGitHub))
+				c.Request = c.Request.WithContext(ctx)
+				c.Next()
+			})
 			strictHandler := api.NewStrictHandler(communityHandler, nil)
 			api.RegisterHandlers(router, strictHandler)
 

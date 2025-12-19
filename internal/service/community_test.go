@@ -423,9 +423,23 @@ func TestGetCommunityCards(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
 			communityRepo := tt.setupRepo()
+			mockGitHub := &github.MockClient{
+				GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
+					return &github.UserInfo{
+						ID:        id,
+						Login:     "user",
+						Name:      "User",
+						AvatarURL: "https://example.com/avatar.png",
+					}, nil
+				},
+				GetMostUsedLanguageFunc: func(ctx context.Context, login string) (string, string, error) {
+					return "Go", "#00ADD8", nil
+				},
+			}
 			service := NewCommunityService(communityRepo)
-			cards, err := service.GetCommunityCards(tt.communityID)
+			cards, err := service.GetCommunityCards(ctx, tt.communityID, mockGitHub)
 
 			if tt.wantErr {
 				if err == nil {
@@ -442,6 +456,12 @@ func TestGetCommunityCards(t *testing.T) {
 				}
 				if len(cards) != tt.wantCount {
 					t.Errorf("カード数が期待と異なります: 期待=%d, 実際=%d", tt.wantCount, len(cards))
+				}
+				// fullname / avatar url が補完されていることの簡易チェック
+				for _, c := range cards {
+					if c.FullName == "" || c.IconUrl == "" {
+						t.Errorf("カードの FullName または IconUrl が補完されていません")
+					}
 				}
 			}
 		})
