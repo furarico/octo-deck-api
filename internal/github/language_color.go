@@ -1,10 +1,13 @@
 package github
 
 import (
+	_ "embed"
 	"encoding/json"
-	"os"
 	"sync"
 )
+
+//go:embed colors.json
+var colorsJSON []byte
 
 var (
 	languageColors map[string]string
@@ -30,15 +33,8 @@ func GetLanguageColor(language string) string {
 
 // loadLanguageColors はcolors.jsonから言語の色情報を読み込む
 func loadLanguageColors() map[string]string {
-	file, err := os.Open("docs/colors.json")
-	if err != nil {
-		// ファイルが見つからない場合は空のマップを返す
-		return make(map[string]string)
-	}
-	defer file.Close()
-
 	var languageData map[string]languageInfo
-	if err := json.NewDecoder(file).Decode(&languageData); err != nil {
+	if err := json.Unmarshal(colorsJSON, &languageData); err != nil {
 		return make(map[string]string)
 	}
 
