@@ -12,6 +12,7 @@ import (
 type Card struct {
 	ID         uuid.UUID       `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	GithubID   string          `gorm:"not null"`
+	NodeID     string          `gorm:"not null"`
 	CreatedAt  time.Time       `gorm:"autoCreateTime"`
 	Color      string          `gorm:"not null"`
 	BlocksData json.RawMessage `gorm:"type:jsonb;not null"`
