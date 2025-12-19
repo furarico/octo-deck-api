@@ -140,11 +140,18 @@ func calculateHighlightedCard(contributions []github.UserContributionStats, card
 	}
 }
 
-// GetCommunityCards は指定したコミュニティIDのカード一覧を取得する
-func (s *CommunityService) GetCommunityCards(id string) ([]domain.Card, error) {
+// GetCommunityCards は指定したコミュニティIDのカード一覧を取得し、GitHub情報で補完する
+func (s *CommunityService) GetCommunityCards(ctx context.Context, id string, githubClient GitHubClient) ([]domain.Card, error) {
 	cards, err := s.communityRepo.FindCards(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get community cards: %w", err)
+	}
+
+	// 各カードにGitHub情報を補完
+	for i := range cards {
+		if err := EnrichCardWithGitHubInfo(ctx, &cards[i], githubClient); err != nil {
+			return nil, err
+		}
 	}
 
 	return cards, nil

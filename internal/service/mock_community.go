@@ -44,9 +44,9 @@ func (m *MockCommunityService) GetCommunityWithHighlightedCard(ctx context.Conte
 	return nil, nil, nil
 }
 
-func (m *MockCommunityService) GetCommunityCards(id string) ([]domain.Card, error) {
+func (m *MockCommunityService) GetCommunityCards(ctx context.Context, id string, githubClient GitHubClient) ([]domain.Card, error) {
 	if m.GetCommunityCardsFunc != nil {
-		return m.GetCommunityCardsFunc(id)
+		return m.GetCommunityCardsFunc(ctx, id, githubClient)
 	}
 	return []domain.Card{}, nil
 }
