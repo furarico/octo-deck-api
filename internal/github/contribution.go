@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -77,26 +78,71 @@ func (c *Client) GetContributionStats(ctx context.Context, githubID int64) (*Con
 
 // GetUsersContributions は複数ユーザーの貢献データを取得する
 // GitHub GraphQL APIのリソース制限を回避するため、バッチ処理で取得する
+// 各バッチは並列で実行され、パフォーマンスが向上する
 func (c *Client) GetUsersContributions(ctx context.Context, usernames []string, from, to time.Time) ([]UserContributionStats, error) {
 	if len(usernames) == 0 {
 		return []UserContributionStats{}, nil
 	}
 
 	const batchSize = 15 // 一度に処理するユーザー数（リソース制限回避のため）
-	var allStats []UserContributionStats
 
+	// バッチ数を計算
+	numBatches := (len(usernames) + batchSize - 1) / batchSize
+
+	// バッチ結果を格納する構造体
+	type batchResult struct {
+		index int
+		stats []UserContributionStats
+		err   error
+	}
+
+	results := make(chan batchResult, numBatches)
+	var wg sync.WaitGroup
+
+	// 各バッチを並列で実行
 	for i := 0; i < len(usernames); i += batchSize {
+		wg.Add(1)
+		batchIndex := i / batchSize
+		start := i
 		end := i + batchSize
 		if end > len(usernames) {
 			end = len(usernames)
 		}
-		batch := usernames[i:end]
+		batch := usernames[start:end]
 
-		stats, err := c.getUsersContributionsBatch(ctx, batch, from, to)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get users contributions (batch %d-%d): %w", i, end, err)
+		go func(index int, batch []string, start, end int) {
+			defer wg.Done()
+			stats, err := c.getUsersContributionsBatch(ctx, batch, from, to)
+			if err != nil {
+				results <- batchResult{
+					index: index,
+					err:   fmt.Errorf("failed to get users contributions (batch %d-%d): %w", start, end, err),
+				}
+				return
+			}
+			results <- batchResult{index: index, stats: stats}
+		}(batchIndex, batch, start, end)
+	}
+
+	// 全バッチの完了を待ってチャネルをクローズ
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// 結果を収集（順序を保持するためにインデックスでソート）
+	batchResults := make([]batchResult, numBatches)
+	for result := range results {
+		if result.err != nil {
+			return nil, result.err
 		}
-		allStats = append(allStats, stats...)
+		batchResults[result.index] = result
+	}
+
+	// 結果を順序通りに結合
+	var allStats []UserContributionStats
+	for _, br := range batchResults {
+		allStats = append(allStats, br.stats...)
 	}
 
 	return allStats, nil
@@ -158,7 +204,7 @@ func (c *Client) getUsersContributionsBatch(ctx context.Context, usernames []str
 	}
 
 	if err := c.executeGraphQL(ctx, query, variables, &result); err != nil {
-		return nil, fmt.Errorf("failed to execute GraphQL query: %w", err)
+		return nil, err
 	}
 
 	stats := make([]UserContributionStats, 0, len(result.Search.Nodes))

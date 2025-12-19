@@ -10,7 +10,7 @@ import (
 
 const (
 	// maxConcurrentRequests は並列API呼び出しの最大同時実行数
-	maxConcurrentRequests = 10
+	maxConcurrentRequests = 100
 	// defaultLanguageColor は言語が不明な場合のデフォルト色
 	defaultLanguageColor = "#586069"
 )
