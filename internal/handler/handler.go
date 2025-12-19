@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/service"
@@ -41,7 +42,7 @@ type CommunityServiceInterface interface {
 	GetCommunityByID(id string) (*domain.Community, error)
 	GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
 	GetCommunityCards(ctx context.Context, id string, githubClient service.GitHubClient) ([]domain.Card, error)
-	CreateCommunity(name string) (*domain.Community, error)
+	CreateCommunityWithPeriod(name string, startDateTime, endDateTime time.Time) (*domain.Community, error)
 	DeleteCommunity(id string) error
 	AddCardToCommunity(communityID string, cardID string) error
 	RemoveCardFromCommunity(communityID string, cardID string) error

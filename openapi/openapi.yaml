@@ -146,9 +146,22 @@ paths:
       requestBody:
         required: true
         content:
-          text/plain:
+          application/json:
             schema:
-              type: string
+              type: object
+              properties:
+                name:
+                  type: string
+                startDateTime:
+                  type: string
+                  format: date-time
+                endDateTime:
+                  type: string
+                  format: date-time
+              required:
+                - name
+                - startDateTime
+                - endDateTime
   /communities/{id}:
     get:
       operationId: getCommunity
@@ -331,11 +344,19 @@ components:
       required:
         - id
         - name
+        - startDateTime
+        - endDateTime
       properties:
         id:
           type: string
         name:
           type: string
+        startDateTime:
+          type: string
+          format: date-time
+        endDateTime:
+          type: string
+          format: date-time
     Contribution:
       type: object
       required:

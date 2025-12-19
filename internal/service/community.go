@@ -157,14 +157,9 @@ func (s *CommunityService) GetCommunityCards(ctx context.Context, id string, git
 	return cards, nil
 }
 
-// CreateCommunity はコミュニティを作成する
-func (s *CommunityService) CreateCommunity(name string) (*domain.Community, error) {
-	// デフォルトで過去1週間を集計期間とする
-	now := time.Now()
-	startedAt := now.AddDate(0, 0, -7)
-	endedAt := now
-
-	community := domain.NewCommunity(name, startedAt, endedAt, domain.HighlightedCard{})
+// CreateCommunityWithPeriod は集計期間を指定してコミュニティを作成する
+func (s *CommunityService) CreateCommunityWithPeriod(name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
+	community := domain.NewCommunity(name, startDateTime, endDateTime, domain.HighlightedCard{})
 
 	if err := s.communityRepo.Create(community); err != nil {
 		return nil, fmt.Errorf("failed to create community: %w", err)

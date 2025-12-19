@@ -468,11 +468,17 @@ func TestGetCommunityCards(t *testing.T) {
 	}
 }
 
-// CreateCommunity はコミュニティを作成する
-func TestCreateCommunity(t *testing.T) {
+// CreateCommunityWithPeriod はコミュニティを作成する
+func TestCreateCommunityWithPeriod(t *testing.T) {
+	now := time.Now()
+	startDateTime := now.AddDate(0, 0, -7)
+	endDateTime := now
+
 	tests := []struct {
 		name          string
 		communityName string
+		startDateTime time.Time
+		endDateTime   time.Time
 		setupRepo     func() *repository.MockCommunityRepository
 		wantErr       bool
 		wantErrMsg    string
@@ -480,6 +486,8 @@ func TestCreateCommunity(t *testing.T) {
 		{
 			name:          "正常にコミュニティを作成できる",
 			communityName: "Test Community",
+			startDateTime: startDateTime,
+			endDateTime:   endDateTime,
 			setupRepo: func() *repository.MockCommunityRepository {
 				return &repository.MockCommunityRepository{
 					CreateFunc: func(community *domain.Community) error {
@@ -492,6 +500,8 @@ func TestCreateCommunity(t *testing.T) {
 		{
 			name:          "Repositoryエラーが発生した場合",
 			communityName: "Test Community",
+			startDateTime: startDateTime,
+			endDateTime:   endDateTime,
 			setupRepo: func() *repository.MockCommunityRepository {
 				return &repository.MockCommunityRepository{
 					CreateFunc: func(community *domain.Community) error {
@@ -508,7 +518,7 @@ func TestCreateCommunity(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			communityRepo := tt.setupRepo()
 			service := NewCommunityService(communityRepo)
-			community, err := service.CreateCommunity(tt.communityName)
+			community, err := service.CreateCommunityWithPeriod(tt.communityName, tt.startDateTime, tt.endDateTime)
 
 			if tt.wantErr {
 				if err == nil {

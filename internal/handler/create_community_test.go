@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
@@ -17,6 +18,10 @@ import (
 // コミュニティ作成のテスト
 func TestCreateCommunity(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+
+	now := time.Now()
+	startDateTime := now.AddDate(0, 0, -7)
+	endDateTime := now
 
 	tests := []struct {
 		name      string
@@ -29,15 +34,17 @@ func TestCreateCommunity(t *testing.T) {
 			name: "正常にコミュニティを作成できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					CreateCommunityFunc: func(name string) (*domain.Community, error) {
+					CreateCommunityWithPeriodFunc: func(name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
 						return &domain.Community{
-							ID:   domain.NewCommunityID(),
-							Name: name,
+							ID:        domain.NewCommunityID(),
+							Name:      name,
+							StartedAt: startDateTime,
+							EndedAt:   endDateTime,
 						}, nil
 					},
 				}
 			},
-			body:     `"New Community"`,
+			body:     fmt.Sprintf(`{"name":"New Community","startDateTime":"%s","endDateTime":"%s"}`, startDateTime.Format(time.RFC3339), endDateTime.Format(time.RFC3339)),
 			wantCode: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder) {
 				var response struct {
@@ -58,7 +65,7 @@ func TestCreateCommunity(t *testing.T) {
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{}
 			},
-			body:     `""`,
+			body:     fmt.Sprintf(`{"name":"","startDateTime":"%s","endDateTime":"%s"}`, startDateTime.Format(time.RFC3339), endDateTime.Format(time.RFC3339)),
 			wantCode: http.StatusInternalServerError,
 			validate: nil,
 		},
@@ -66,12 +73,12 @@ func TestCreateCommunity(t *testing.T) {
 			name: "サービスでエラーが発生した場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					CreateCommunityFunc: func(name string) (*domain.Community, error) {
+					CreateCommunityWithPeriodFunc: func(name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
 			},
-			body:     `"Test Community"`,
+			body:     fmt.Sprintf(`{"name":"Test Community","startDateTime":"%s","endDateTime":"%s"}`, startDateTime.Format(time.RFC3339), endDateTime.Format(time.RFC3339)),
 			wantCode: http.StatusInternalServerError,
 			validate: nil,
 		},
