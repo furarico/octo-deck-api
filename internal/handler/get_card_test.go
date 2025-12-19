@@ -100,6 +100,7 @@ func setTestContext(c *gin.Context) {
 	ctx := c.Request.Context()
 	ctx = context.WithValue(ctx, GitHubClientKey, github.NewMockClient())
 	ctx = context.WithValue(ctx, GitHubIDKey, "test_user")
+	ctx = context.WithValue(ctx, GitHubNodeIDKey, "MDQ6VXNlcjEyMzQ1")
 	c.Request = c.Request.WithContext(ctx)
 	c.Next()
 }

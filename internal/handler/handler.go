@@ -27,7 +27,7 @@ type CardServiceInterface interface {
 	GetAllCards(ctx context.Context, githubID string, githubClient service.GitHubClient) ([]domain.Card, error)
 	GetCardByGitHubID(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
 	GetMyCard(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
-	GetOrCreateMyCard(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
+	GetOrCreateMyCard(ctx context.Context, githubID string, nodeID string, githubClient service.GitHubClient) (*domain.Card, error)
 	AddCardToDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient service.GitHubClient) (*domain.Card, error)
 	RemoveCardFromDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient service.GitHubClient) (*domain.Card, error)
 }
@@ -101,4 +101,14 @@ func getGitHubID(ctx context.Context) (string, error) {
 		return "", errors.New("github_id not found in context")
 	}
 	return id, nil
+}
+
+// context.ContextからGitHub NodeIDを取得するためのヘルパー関数
+func getGitHubNodeID(ctx context.Context) (string, error) {
+	reqCtx := getRequestContext(ctx)
+	nodeID, ok := reqCtx.Value(GitHubNodeIDKey).(string)
+	if !ok || nodeID == "" {
+		return "", errors.New("github_node_id not found in context")
+	}
+	return nodeID, nil
 }

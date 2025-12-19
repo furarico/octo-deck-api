@@ -32,6 +32,7 @@ func (c *Card) ToDomain() *domain.Card {
 	return &domain.Card{
 		ID:       domain.CardID(c.ID),
 		GithubID: c.GithubID,
+		NodeID:   c.NodeID,
 		Color:    domain.Color(c.Color),
 		Blocks:   blocks,
 	}
@@ -43,6 +44,7 @@ func CardFromDomain(card *domain.Card) *Card {
 	return &Card{
 		ID:         uuid.UUID(card.ID),
 		GithubID:   card.GithubID,
+		NodeID:     card.NodeID,
 		Color:      string(card.Color),
 		BlocksData: blocksData,
 	}

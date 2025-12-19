@@ -91,7 +91,7 @@ func (s *CardService) GetMyCard(ctx context.Context, githubID string, githubClie
 }
 
 // GetOrCreateMyCard は自分のカードを取得し、存在しない場合は新規作成する
-func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error) {
+func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, nodeID string, githubClient GitHubClient) (*domain.Card, error) {
 	card, err := s.cardRepo.FindMyCard(githubID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("failed to get my card: %w", err)
@@ -104,7 +104,7 @@ func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, gi
 			return nil, fmt.Errorf("failed to generate identicon: %w", err)
 		}
 
-		card = domain.NewCard(githubID, color, blocks, domain.Language{})
+		card = domain.NewCard(githubID, nodeID, color, blocks, domain.Language{})
 		if err := s.cardRepo.Create(card); err != nil {
 			return nil, fmt.Errorf("failed to create card: %w", err)
 		}

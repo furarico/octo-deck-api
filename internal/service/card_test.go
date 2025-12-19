@@ -529,7 +529,7 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			githubClient := tt.setupGitHub()
 
 			service := NewCardService(cardRepo, identiconGen)
-			card, err := service.GetOrCreateMyCard(ctx, tt.githubID, githubClient)
+			card, err := service.GetOrCreateMyCard(ctx, tt.githubID, "MDQ6VXNlcjEyMzQ1", githubClient)
 
 			if tt.wantErr {
 				if err == nil {
