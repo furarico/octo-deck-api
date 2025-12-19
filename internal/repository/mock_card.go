@@ -7,6 +7,7 @@ type MockCardRepository struct {
 	FindByGitHubIDFunc           func(githubID string) (*domain.Card, error)
 	FindMyCardFunc               func(githubID string) (*domain.Card, error)
 	CreateFunc                   func(card *domain.Card) error
+	UpdateFunc                   func(card *domain.Card) error
 	AddToCollectedCardsFunc      func(collectorGithubID string, cardID domain.CardID) error
 	RemoveFromCollectedCardsFunc func(collectorGithubID string, cardID domain.CardID) error
 }
@@ -60,6 +61,14 @@ func (r *MockCardRepository) AddToCollectedCards(collectorGithubID string, cardI
 func (r *MockCardRepository) RemoveFromCollectedCards(collectorGithubID string, cardID domain.CardID) error {
 	if r.RemoveFromCollectedCardsFunc != nil {
 		return r.RemoveFromCollectedCardsFunc(collectorGithubID, cardID)
+	}
+	return nil
+}
+
+// Update はカード情報を更新する
+func (r *MockCardRepository) Update(card *domain.Card) error {
+	if r.UpdateFunc != nil {
+		return r.UpdateFunc(card)
 	}
 	return nil
 }

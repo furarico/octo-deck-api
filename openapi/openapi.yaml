@@ -274,6 +274,32 @@ paths:
                     $ref: '#/components/schemas/Card'
                 required:
                   - card
+  /communities/{id}/refresh:
+    put:
+      operationId: refreshCommunity
+      summary: コミュニティのHighlightedCardを更新
+      description: GitHub APIを呼び出してHighlightedCardを再計算し、データベースに保存する
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  community:
+                    $ref: '#/components/schemas/Community'
+                  highlightedCard:
+                    $ref: '#/components/schemas/HighlightedCard'
+                required:
+                  - community
+                  - highlightedCard
   /stats/me:
     get:
       operationId: getMyStats

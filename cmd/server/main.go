@@ -57,7 +57,7 @@ func main() {
 	communityRepository := repository.NewCommunityRepository(db)
 	//cardRepository := repository.NewMockCardRepository()
 	cardService := service.NewCardService(cardRepository, identiconGen)
-	communityService := service.NewCommunityService(communityRepository)
+	communityService := service.NewCommunityService(communityRepository, cardRepository)
 	statsService := service.NewStatsService()
 	h := handler.NewHandler(cardService, communityService, statsService)
 

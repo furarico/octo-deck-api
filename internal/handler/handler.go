@@ -41,7 +41,8 @@ type StatsServiceInterface interface {
 type CommunityServiceInterface interface {
 	GetAllCommunities(githubID string) ([]domain.Community, error)
 	GetCommunityByID(id string) (*domain.Community, error)
-	GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
+	GetCommunityWithHighlightedCard(id string) (*domain.Community, *domain.HighlightedCard, error)
+	RefreshHighlightedCard(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
 	GetCommunityCards(ctx context.Context, id string, githubClient service.GitHubClient) ([]domain.Card, error)
 	CreateCommunityWithPeriod(name string, startDateTime, endDateTime time.Time) (*domain.Community, error)
 	DeleteCommunity(id string) error

@@ -79,7 +79,8 @@ func TestGetAllCommunities(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			communityRepo := tt.setupRepo()
-			service := NewCommunityService(communityRepo)
+			cardRepo := &repository.MockCardRepository{}
+			service := NewCommunityService(communityRepo, cardRepo)
 			communities, err := service.GetAllCommunities(tt.githubID)
 
 			if tt.wantErr {
@@ -155,7 +156,8 @@ func TestGetCommunityByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			communityRepo := tt.setupRepo()
-			service := NewCommunityService(communityRepo)
+			cardRepo := &repository.MockCardRepository{}
+			service := NewCommunityService(communityRepo, cardRepo)
 			community, err := service.GetCommunityByID(tt.communityID)
 
 			if tt.wantErr {
@@ -180,13 +182,12 @@ func TestGetCommunityByID(t *testing.T) {
 	}
 }
 
-// GetCommunityWithHighlightedCard はコミュニティとHighlightedCardを取得する
+// GetCommunityWithHighlightedCard はコミュニティとHighlightedCardをデータベースから取得する
 func TestGetCommunityWithHighlightedCard(t *testing.T) {
 	tests := []struct {
 		name        string
 		communityID string
 		setupRepo   func() *repository.MockCommunityRepository
-		setupGitHub func() *github.MockClient
 		wantErr     bool
 		wantErrMsg  string
 	}{
@@ -195,34 +196,12 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 			communityID: "test-community-id",
 			setupRepo: func() *repository.MockCommunityRepository {
 				return &repository.MockCommunityRepository{
-					FindByIDFunc: func(id string) (*domain.Community, error) {
-						return createTestCommunity("Test Community"), nil
-					},
-					FindCardsFunc: func(id string) ([]domain.Card, error) {
-						return []domain.Card{
-							*createTestCard("12345"),
-							*createTestCard("67890"),
-						}, nil
-					},
-				}
-			},
-			setupGitHub: func() *github.MockClient {
-				return &github.MockClient{
-					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
-						return &github.UserInfo{
-							ID:        id,
-							Login:     "testuser",
-							Name:      "Test User",
-							AvatarURL: "https://example.com/avatar.png",
-						}, nil
-					},
-					GetMostUsedLanguageFunc: func(ctx context.Context, login string) (string, string, error) {
-						return "Go", "#00ADD8", nil
-					},
-					GetContributionsByNodeIDsFunc: func(ctx context.Context, nodeIDs []string, from, to time.Time) ([]github.UserContributionStats, error) {
-						return []github.UserContributionStats{
-							{Login: "testuser", Total: 100, Commits: 50, Issues: 20, PRs: 20, Reviews: 10},
-						}, nil
+					FindByIDWithHighlightedCardFunc: func(id string) (*domain.Community, error) {
+						community := createTestCommunity("Test Community")
+						community.HighlightedCard = domain.HighlightedCard{
+							BestContributor: *createTestCard("12345"),
+						}
+						return community, nil
 					},
 				}
 			},
@@ -233,102 +212,35 @@ func TestGetCommunityWithHighlightedCard(t *testing.T) {
 			communityID: "test-community-id",
 			setupRepo: func() *repository.MockCommunityRepository {
 				return &repository.MockCommunityRepository{
-					FindByIDFunc: func(id string) (*domain.Community, error) {
+					FindByIDWithHighlightedCardFunc: func(id string) (*domain.Community, error) {
 						return nil, nil
 					},
 				}
-			},
-			setupGitHub: func() *github.MockClient {
-				return &github.MockClient{}
 			},
 			wantErr:    true,
 			wantErrMsg: "community not found",
 		},
 		{
-			name:        "Repositoryエラーが発生した場合（FindByID）",
+			name:        "Repositoryエラーが発生した場合",
 			communityID: "test-community-id",
 			setupRepo: func() *repository.MockCommunityRepository {
 				return &repository.MockCommunityRepository{
-					FindByIDFunc: func(id string) (*domain.Community, error) {
+					FindByIDWithHighlightedCardFunc: func(id string) (*domain.Community, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
-			},
-			setupGitHub: func() *github.MockClient {
-				return &github.MockClient{}
 			},
 			wantErr:    true,
 			wantErrMsg: "failed to get community by id",
-		},
-		{
-			name:        "カード一覧取得時のRepositoryエラー",
-			communityID: "test-community-id",
-			setupRepo: func() *repository.MockCommunityRepository {
-				return &repository.MockCommunityRepository{
-					FindByIDFunc: func(id string) (*domain.Community, error) {
-						return createTestCommunity("Test Community"), nil
-					},
-					FindCardsFunc: func(id string) ([]domain.Card, error) {
-						return nil, fmt.Errorf("database error")
-					},
-				}
-			},
-			setupGitHub: func() *github.MockClient {
-				return &github.MockClient{}
-			},
-			wantErr:    true,
-			wantErrMsg: "failed to get community cards",
-		},
-		{
-			name:        "カードが存在しない場合、空のHighlightedCardを返す",
-			communityID: "test-community-id",
-			setupRepo: func() *repository.MockCommunityRepository {
-				return &repository.MockCommunityRepository{
-					FindByIDFunc: func(id string) (*domain.Community, error) {
-						return createTestCommunity("Test Community"), nil
-					},
-					FindCardsFunc: func(id string) ([]domain.Card, error) {
-						return []domain.Card{}, nil
-					},
-				}
-			},
-			setupGitHub: func() *github.MockClient {
-				return &github.MockClient{}
-			},
-			wantErr: false,
-		},
-		{
-			name:        "貢献データ取得時のGitHubClientエラー",
-			communityID: "test-community-id",
-			setupRepo: func() *repository.MockCommunityRepository {
-				return &repository.MockCommunityRepository{
-					FindByIDFunc: func(id string) (*domain.Community, error) {
-						return createTestCommunity("Test Community"), nil
-					},
-					FindCardsFunc: func(id string) ([]domain.Card, error) {
-						return []domain.Card{*createTestCard("12345")}, nil
-					},
-				}
-			},
-			setupGitHub: func() *github.MockClient {
-				return &github.MockClient{
-					GetUsersFullInfoByNodeIDsFunc: func(ctx context.Context, nodeIDs []string, from, to time.Time) ([]github.UserFullInfo, error) {
-						return nil, fmt.Errorf("github api error")
-					},
-				}
-			},
-			wantErr:    true,
-			wantErrMsg: "failed to get users full info by node ids",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
 			communityRepo := tt.setupRepo()
-			githubClient := tt.setupGitHub()
-			service := NewCommunityService(communityRepo)
-			community, highlightedCard, err := service.GetCommunityWithHighlightedCard(ctx, tt.communityID, githubClient)
+			cardRepo := &repository.MockCardRepository{}
+			service := NewCommunityService(communityRepo, cardRepo)
+			community, highlightedCard, err := service.GetCommunityWithHighlightedCard(tt.communityID)
 
 			if tt.wantErr {
 				if err == nil {
@@ -427,7 +339,8 @@ func TestGetCommunityCards(t *testing.T) {
 					return "Go", "#00ADD8", nil
 				},
 			}
-			service := NewCommunityService(communityRepo)
+			cardRepo := &repository.MockCardRepository{}
+			service := NewCommunityService(communityRepo, cardRepo)
 			cards, err := service.GetCommunityCards(ctx, tt.communityID, mockGitHub)
 
 			if tt.wantErr {
@@ -506,7 +419,8 @@ func TestCreateCommunityWithPeriod(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			communityRepo := tt.setupRepo()
-			service := NewCommunityService(communityRepo)
+			cardRepo := &repository.MockCardRepository{}
+			service := NewCommunityService(communityRepo, cardRepo)
 			community, err := service.CreateCommunityWithPeriod(tt.communityName, tt.startDateTime, tt.endDateTime)
 
 			if tt.wantErr {
@@ -573,7 +487,8 @@ func TestDeleteCommunity(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			communityRepo := tt.setupRepo()
-			service := NewCommunityService(communityRepo)
+			cardRepo := &repository.MockCardRepository{}
+			service := NewCommunityService(communityRepo, cardRepo)
 			err := service.DeleteCommunity(tt.communityID)
 
 			if tt.wantErr {
@@ -636,7 +551,8 @@ func TestAddCardToCommunity(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			communityRepo := tt.setupRepo()
-			service := NewCommunityService(communityRepo)
+			cardRepo := &repository.MockCardRepository{}
+			service := NewCommunityService(communityRepo, cardRepo)
 			err := service.AddCardToCommunity(tt.communityID, tt.cardID)
 
 			if tt.wantErr {
@@ -699,7 +615,8 @@ func TestRemoveCardFromCommunity(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			communityRepo := tt.setupRepo()
-			service := NewCommunityService(communityRepo)
+			cardRepo := &repository.MockCardRepository{}
+			service := NewCommunityService(communityRepo, cardRepo)
 			err := service.RemoveCardFromCommunity(tt.communityID, tt.cardID)
 
 			if tt.wantErr {

@@ -142,6 +142,9 @@ type ServerInterface interface {
 	// 指定したコミュニティに自分のカードを追加
 	// (POST /communities/{id}/cards)
 	AddCardToCommunity(c *gin.Context, id string)
+	// コミュニティのHighlightedCardを更新
+	// (PUT /communities/{id}/refresh)
+	RefreshCommunity(c *gin.Context, id string)
 	// 自分の統計情報取得
 	// (GET /stats/me)
 	GetMyStats(c *gin.Context)
@@ -416,6 +419,32 @@ func (siw *ServerInterfaceWrapper) AddCardToCommunity(c *gin.Context) {
 	siw.Handler.AddCardToCommunity(c, id)
 }
 
+// RefreshCommunity operation middleware
+func (siw *ServerInterfaceWrapper) RefreshCommunity(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RefreshCommunity(c, id)
+}
+
 // GetMyStats operation middleware
 func (siw *ServerInterfaceWrapper) GetMyStats(c *gin.Context) {
 
@@ -496,6 +525,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.DELETE(options.BaseURL+"/communities/:id/cards", wrapper.RemoveCardFromCommunity)
 	router.GET(options.BaseURL+"/communities/:id/cards", wrapper.GetCommunityCards)
 	router.POST(options.BaseURL+"/communities/:id/cards", wrapper.AddCardToCommunity)
+	router.PUT(options.BaseURL+"/communities/:id/refresh", wrapper.RefreshCommunity)
 	router.GET(options.BaseURL+"/stats/me", wrapper.GetMyStats)
 	router.GET(options.BaseURL+"/stats/:githubId", wrapper.GetUserStats)
 }
@@ -726,6 +756,26 @@ func (response AddCardToCommunity200JSONResponse) VisitAddCardToCommunityRespons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type RefreshCommunityRequestObject struct {
+	Id string `json:"id"`
+}
+
+type RefreshCommunityResponseObject interface {
+	VisitRefreshCommunityResponse(w http.ResponseWriter) error
+}
+
+type RefreshCommunity200JSONResponse struct {
+	Community       Community       `json:"community"`
+	HighlightedCard HighlightedCard `json:"highlightedCard"`
+}
+
+func (response RefreshCommunity200JSONResponse) VisitRefreshCommunityResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetMyStatsRequestObject struct {
 }
 
@@ -801,6 +851,9 @@ type StrictServerInterface interface {
 	// 指定したコミュニティに自分のカードを追加
 	// (POST /communities/{id}/cards)
 	AddCardToCommunity(ctx context.Context, request AddCardToCommunityRequestObject) (AddCardToCommunityResponseObject, error)
+	// コミュニティのHighlightedCardを更新
+	// (PUT /communities/{id}/refresh)
+	RefreshCommunity(ctx context.Context, request RefreshCommunityRequestObject) (RefreshCommunityResponseObject, error)
 	// 自分の統計情報取得
 	// (GET /stats/me)
 	GetMyStats(ctx context.Context, request GetMyStatsRequestObject) (GetMyStatsResponseObject, error)
@@ -1144,6 +1197,33 @@ func (sh *strictHandler) AddCardToCommunity(ctx *gin.Context, id string) {
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(AddCardToCommunityResponseObject); ok {
 		if err := validResponse.VisitAddCardToCommunityResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RefreshCommunity operation middleware
+func (sh *strictHandler) RefreshCommunity(ctx *gin.Context, id string) {
+	var request RefreshCommunityRequestObject
+
+	request.Id = id
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.RefreshCommunity(ctx, request.(RefreshCommunityRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RefreshCommunity")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(RefreshCommunityResponseObject); ok {
+		if err := validResponse.VisitRefreshCommunityResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {

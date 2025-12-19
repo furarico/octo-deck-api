@@ -16,6 +16,7 @@ type CardRepository interface {
 	FindByGitHubID(githubID string) (*domain.Card, error)
 	FindMyCard(githubID string) (*domain.Card, error)
 	Create(card *domain.Card) error
+	Update(card *domain.Card) error
 	AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error
 	RemoveFromCollectedCards(collectorGithubID string, cardID domain.CardID) error
 }
@@ -99,12 +100,33 @@ func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, no
 
 	// カードが存在しない場合は新規作成
 	if card == nil || errors.Is(err, gorm.ErrRecordNotFound) {
+		// GitHub APIから自分のユーザー情報を取得
+		userInfo, err := githubClient.GetAuthenticatedUser(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get authenticated user: %w", err)
+		}
+
 		color, blocks, err := s.identiconGenerator.Generate(githubID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate identicon: %w", err)
 		}
 
-		card = domain.NewCard(githubID, nodeID, color, blocks, domain.Language{})
+		// MostUsedLanguageを取得
+		langName, langColor, err := githubClient.GetMostUsedLanguage(ctx, userInfo.Login)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get most used language: %w", err)
+		}
+
+		card = domain.NewCard(
+			githubID,
+			nodeID,
+			color,
+			blocks,
+			domain.Language{LanguageName: langName, Color: langColor},
+			userInfo.Login,
+			userInfo.Name,
+			userInfo.AvatarURL,
+		)
 		if err := s.cardRepo.Create(card); err != nil {
 			return nil, fmt.Errorf("failed to create card: %w", err)
 		}

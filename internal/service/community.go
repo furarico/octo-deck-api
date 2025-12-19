@@ -13,20 +13,24 @@ import (
 type CommunityRepository interface {
 	FindAll(githubID string) ([]domain.Community, error)
 	FindByID(id string) (*domain.Community, error)
+	FindByIDWithHighlightedCard(id string) (*domain.Community, error)
 	FindCards(id string) ([]domain.Card, error)
 	Create(community *domain.Community) error
 	Delete(id string) error
 	AddCard(communityID string, cardID string) error
 	RemoveCard(communityID string, cardID string) error
+	UpdateHighlightedCard(communityID string, highlightedCard *domain.HighlightedCard) error
 }
 
 type CommunityService struct {
 	communityRepo CommunityRepository
+	cardRepo      CardRepository
 }
 
-func NewCommunityService(communityRepo CommunityRepository) *CommunityService {
+func NewCommunityService(communityRepo CommunityRepository, cardRepo CardRepository) *CommunityService {
 	return &CommunityService{
 		communityRepo: communityRepo,
+		cardRepo:      cardRepo,
 	}
 }
 
@@ -54,9 +58,22 @@ func (s *CommunityService) GetCommunityByID(id string) (*domain.Community, error
 	return community, nil
 }
 
-// GetCommunityWithHighlightedCard はコミュニティとHighlightedCardを取得する
-// 最適化: 統合GraphQLクエリを使用して、ユーザー情報・貢献データ・言語情報を1回のAPI呼び出しで取得
-func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
+// GetCommunityWithHighlightedCard はコミュニティとHighlightedCardをデータベースから取得する
+func (s *CommunityService) GetCommunityWithHighlightedCard(id string) (*domain.Community, *domain.HighlightedCard, error) {
+	// コミュニティをHighlightedCard付きで取得
+	community, err := s.communityRepo.FindByIDWithHighlightedCard(id)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get community by id: %w", err)
+	}
+	if community == nil {
+		return nil, nil, fmt.Errorf("community not found: id=%s", id)
+	}
+
+	return community, &community.HighlightedCard, nil
+}
+
+// RefreshHighlightedCard はGitHub APIを呼び出してHighlightedCardを再計算し、データベースに保存する
+func (s *CommunityService) RefreshHighlightedCard(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
 	// コミュニティを取得
 	community, err := s.communityRepo.FindByID(id)
 	if err != nil {
@@ -72,9 +89,13 @@ func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, 
 		return nil, nil, fmt.Errorf("failed to get community cards: %w", err)
 	}
 
-	// カードがない場合は空のHighlightedCardを返す
+	// カードがない場合は空のHighlightedCardを保存して返す
 	if len(cards) == 0 {
-		return community, &domain.HighlightedCard{}, nil
+		emptyHighlightedCard := &domain.HighlightedCard{}
+		if err := s.communityRepo.UpdateHighlightedCard(id, emptyHighlightedCard); err != nil {
+			return nil, nil, fmt.Errorf("failed to update highlighted card: %w", err)
+		}
+		return community, emptyHighlightedCard, nil
 	}
 
 	// NodeIDリストを作成し、NodeID -> Cardのインデックスマップを構築
@@ -87,27 +108,62 @@ func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, 
 		}
 	}
 
-	// NodeIDがない場合は空のHighlightedCardを返す
+	// NodeIDがない場合は空のHighlightedCardを保存して返す
 	if len(nodeIDs) == 0 {
-		return community, &domain.HighlightedCard{}, nil
+		emptyHighlightedCard := &domain.HighlightedCard{}
+		if err := s.communityRepo.UpdateHighlightedCard(id, emptyHighlightedCard); err != nil {
+			return nil, nil, fmt.Errorf("failed to update highlighted card: %w", err)
+		}
+		return community, emptyHighlightedCard, nil
 	}
 
 	// 統合GraphQLクエリで全情報を一括取得（ユーザー情報、貢献データ、言語情報）
-	// これにより3回のAPI呼び出しが1回に削減される
 	usersFullInfo, err := githubClient.GetUsersFullInfoByNodeIDs(ctx, nodeIDs, community.StartedAt, community.EndedAt)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get users full info by node ids: %w", err)
 	}
 
-	// データがない場合は空のHighlightedCardを返す
+	// データがない場合は空のHighlightedCardを保存して返す
 	if len(usersFullInfo) == 0 {
-		return community, &domain.HighlightedCard{}, nil
+		emptyHighlightedCard := &domain.HighlightedCard{}
+		if err := s.communityRepo.UpdateHighlightedCard(id, emptyHighlightedCard); err != nil {
+			return nil, nil, fmt.Errorf("failed to update highlighted card: %w", err)
+		}
+		return community, emptyHighlightedCard, nil
 	}
 
 	// 各カテゴリのベストユーザーを計算し、カード情報を構築
 	highlightedCard := calculateHighlightedCardFromFullInfo(usersFullInfo, cards, cardIndexByNodeID, nodeIDs)
 
-	return community, highlightedCard, nil
+	// 各カードの情報をデータベースに保存
+	cardsToUpdate := []*domain.Card{
+		&highlightedCard.BestContributor,
+		&highlightedCard.BestCommitter,
+		&highlightedCard.BestIssuer,
+		&highlightedCard.BestPullRequester,
+		&highlightedCard.BestReviewer,
+	}
+
+	for _, card := range cardsToUpdate {
+		if card.GithubID != "" {
+			if err := s.cardRepo.Update(card); err != nil {
+				return nil, nil, fmt.Errorf("failed to update card: %w", err)
+			}
+		}
+	}
+
+	// HighlightedCardをデータベースに保存
+	if err := s.communityRepo.UpdateHighlightedCard(id, highlightedCard); err != nil {
+		return nil, nil, fmt.Errorf("failed to update highlighted card: %w", err)
+	}
+
+	// 更新後のコミュニティを取得して返す
+	updatedCommunity, err := s.communityRepo.FindByIDWithHighlightedCard(id)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get updated community: %w", err)
+	}
+
+	return updatedCommunity, &updatedCommunity.HighlightedCard, nil
 }
 
 // calculateHighlightedCardFromFullInfo は統合クエリの結果から各カテゴリのベストユーザーを計算する

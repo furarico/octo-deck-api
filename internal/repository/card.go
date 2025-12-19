@@ -74,3 +74,9 @@ func (r *cardRepository) RemoveFromCollectedCards(collectorGithubID string, card
 		Where("collector_github_id = ? AND card_id = ?", collectorGithubID, uuid.UUID(cardID)).
 		Delete(&database.CollectedCard{}).Error
 }
+
+// Update はカード情報を更新する
+func (r *cardRepository) Update(card *domain.Card) error {
+	dbCard := database.CardFromDomain(card)
+	return r.db.Model(&database.Card{}).Where("id = ?", dbCard.ID).Updates(dbCard).Error
+}

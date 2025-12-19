@@ -30,7 +30,7 @@ type Card struct {
 	MostUsedLanguage Language
 }
 
-func NewCard(githubID string, nodeID string, color Color, blocks Blocks, mostUsedLanguage Language) *Card {
+func NewCard(githubID string, nodeID string, color Color, blocks Blocks, mostUsedLanguage Language, userName string, fullName string, iconUrl string) *Card {
 	return &Card{
 		ID:               NewCardID(),
 		GithubID:         githubID,
@@ -38,5 +38,8 @@ func NewCard(githubID string, nodeID string, color Color, blocks Blocks, mostUse
 		Color:            color,
 		Blocks:           blocks,
 		MostUsedLanguage: mostUsedLanguage,
+		UserName:         userName,
+		FullName:         fullName,
+		IconUrl:          iconUrl,
 	}
 }
