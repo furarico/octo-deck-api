@@ -6,7 +6,7 @@ import (
 	"github.com/furarico/octo-deck-api/internal/domain"
 )
 
-// ToDomainStats converts GitHub UserStats to domain Stats
+// UserStatsをDomainのStatsに変換する
 func (us *UserStats) ToDomainStats() (*domain.Stats, error) {
 	contributions := make([]domain.Contribution, len(us.Contributions))
 	for i, c := range us.Contributions {
