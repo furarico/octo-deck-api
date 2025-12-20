@@ -29,7 +29,7 @@ func (h *Handler) AddCardToCommunity(ctx context.Context, request api.AddCardToC
 
 	// コミュニティにカードを追加
 	cardID := uuid.UUID(card.ID).String()
-	if err := h.communityService.AddCardToCommunity(request.Id, cardID); err != nil {
+	if err := h.communityService.AddCardToCommunity(ctx, request.Id, cardID); err != nil {
 		return nil, fmt.Errorf("failed to add card to community: %w", err)
 	}
 

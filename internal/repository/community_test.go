@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -139,9 +140,10 @@ func TestCommunityRepository_FindAll(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			githubID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCommunityRepository(db)
-			communities, err := repo.FindAll(githubID)
+			communities, err := repo.FindAll(ctx, githubID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindAll() error = %v, wantErr %v", err, tt.wantErr)
@@ -192,9 +194,10 @@ func TestCommunityRepository_FindByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			communityID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCommunityRepository(db)
-			community, err := repo.FindByID(communityID)
+			community, err := repo.FindByID(ctx, communityID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindByID() error = %v, wantErr %v", err, tt.wantErr)
@@ -266,9 +269,10 @@ func TestCommunityRepository_FindByIDWithHighlightedCard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			communityID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCommunityRepository(db)
-			community, err := repo.FindByIDWithHighlightedCard(communityID)
+			community, err := repo.FindByIDWithHighlightedCard(ctx, communityID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindByIDWithHighlightedCard() error = %v, wantErr %v", err, tt.wantErr)
@@ -343,9 +347,10 @@ func TestCommunityRepository_UpdateHighlightedCard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			communityID, highlightedCard := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCommunityRepository(db)
-			err := repo.UpdateHighlightedCard(communityID, highlightedCard)
+			err := repo.UpdateHighlightedCard(ctx, communityID, highlightedCard)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UpdateHighlightedCard() error = %v, wantErr %v", err, tt.wantErr)
@@ -436,9 +441,10 @@ func TestCommunityRepository_FindCards(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			communityID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCommunityRepository(db)
-			cards, err := repo.FindCards(communityID)
+			cards, err := repo.FindCards(ctx, communityID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindCards() error = %v, wantErr %v", err, tt.wantErr)
@@ -476,9 +482,10 @@ func TestCommunityRepository_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
+			ctx := context.Background()
 
 			repo := NewCommunityRepository(db)
-			err := repo.Create(tt.community)
+			err := repo.Create(ctx, tt.community)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
@@ -538,9 +545,10 @@ func TestCommunityRepository_Delete(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			communityID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCommunityRepository(db)
-			err := repo.Delete(communityID)
+			err := repo.Delete(ctx, communityID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
@@ -610,9 +618,10 @@ func TestCommunityRepository_AddCard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			communityID, cardID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCommunityRepository(db)
-			err := repo.AddCard(communityID, cardID)
+			err := repo.AddCard(ctx, communityID, cardID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddCard() error = %v, wantErr %v", err, tt.wantErr)
@@ -700,9 +709,10 @@ func TestCommunityRepository_RemoveCard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			communityID, cardID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCommunityRepository(db)
-			err := repo.RemoveCard(communityID, cardID)
+			err := repo.RemoveCard(ctx, communityID, cardID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RemoveCard() error = %v, wantErr %v", err, tt.wantErr)

@@ -12,14 +12,14 @@ import (
 
 // CardRepository はServiceが必要とするRepositoryのインターフェース
 type CardRepository interface {
-	FindAll(githubID string) ([]domain.Card, error)
-	FindByGitHubID(githubID string) (*domain.Card, error)
-	FindMyCard(githubID string) (*domain.Card, error)
-	FindAllCardsInDB() ([]domain.Card, error)
-	Create(card *domain.Card) error
-	Update(card *domain.Card) error
-	AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error
-	RemoveFromCollectedCards(collectorGithubID string, cardID domain.CardID) error
+	FindAll(ctx context.Context, githubID string) ([]domain.Card, error)
+	FindByGitHubID(ctx context.Context, githubID string) (*domain.Card, error)
+	FindMyCard(ctx context.Context, githubID string) (*domain.Card, error)
+	FindAllCardsInDB(ctx context.Context) ([]domain.Card, error)
+	Create(ctx context.Context, card *domain.Card) error
+	Update(ctx context.Context, card *domain.Card) error
+	AddToCollectedCards(ctx context.Context, collectorGithubID string, cardID domain.CardID) error
+	RemoveFromCollectedCards(ctx context.Context, collectorGithubID string, cardID domain.CardID) error
 }
 
 // IdenticonGenerator はServiceが必要とするIdenticon Generatorのインターフェース
@@ -40,8 +40,8 @@ func NewCardService(cardRepo CardRepository, identiconGenerator IdenticonGenerat
 }
 
 // GetAllCards は自分が集めたカードを全て取得する
-func (s *CardService) GetAllCards(githubID string) ([]domain.Card, error) {
-	cards, err := s.cardRepo.FindAll(githubID)
+func (s *CardService) GetAllCards(ctx context.Context, githubID string) ([]domain.Card, error) {
+	cards, err := s.cardRepo.FindAll(ctx, githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all cards: %w", err)
 	}
@@ -51,7 +51,7 @@ func (s *CardService) GetAllCards(githubID string) ([]domain.Card, error) {
 
 // GetCardByGitHubID は指定されたGitHub IDのカードを取得する
 func (s *CardService) GetCardByGitHubID(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error) {
-	card, err := s.cardRepo.FindByGitHubID(githubID)
+	card, err := s.cardRepo.FindByGitHubID(ctx, githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get card by github id: %w", err)
 	}
@@ -70,7 +70,7 @@ func (s *CardService) GetCardByGitHubID(ctx context.Context, githubID string, gi
 
 // GetMyCard は自分のカードを取得する
 func (s *CardService) GetMyCard(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error) {
-	card, err := s.cardRepo.FindMyCard(githubID)
+	card, err := s.cardRepo.FindMyCard(ctx, githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get my card: %w", err)
 	}
@@ -89,7 +89,7 @@ func (s *CardService) GetMyCard(ctx context.Context, githubID string, githubClie
 
 // GetOrCreateMyCard は自分のカードを取得し、存在しない場合は新規作成する
 func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, nodeID string, githubClient GitHubClient) (*domain.Card, error) {
-	card, err := s.cardRepo.FindMyCard(githubID)
+	card, err := s.cardRepo.FindMyCard(ctx, githubID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("failed to get my card: %w", err)
 	}
@@ -123,7 +123,7 @@ func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, no
 			userInfo.Name,
 			userInfo.AvatarURL,
 		)
-		if err := s.cardRepo.Create(card); err != nil {
+		if err := s.cardRepo.Create(ctx, card); err != nil {
 			return nil, fmt.Errorf("failed to create card: %w", err)
 		}
 	}
@@ -134,7 +134,7 @@ func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, no
 // AddCardToDeck はカードをデッキに追加する
 func (s *CardService) AddCardToDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient GitHubClient) (*domain.Card, error) {
 	// 追加対象のカードを取得
-	card, err := s.cardRepo.FindByGitHubID(targetGithubID)
+	card, err := s.cardRepo.FindByGitHubID(ctx, targetGithubID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("card not found: githubID=%s", targetGithubID)
@@ -143,7 +143,7 @@ func (s *CardService) AddCardToDeck(ctx context.Context, collectorGithubID strin
 	}
 
 	// デッキに追加
-	if err := s.cardRepo.AddToCollectedCards(collectorGithubID, card.ID); err != nil {
+	if err := s.cardRepo.AddToCollectedCards(ctx, collectorGithubID, card.ID); err != nil {
 		return nil, fmt.Errorf("failed to add card to deck: %w", err)
 	}
 
@@ -158,7 +158,7 @@ func (s *CardService) AddCardToDeck(ctx context.Context, collectorGithubID strin
 // RemoveCardFromDeck はカードをデッキから削除する
 func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient GitHubClient) (*domain.Card, error) {
 	// 削除対象のカードを取得
-	card, err := s.cardRepo.FindByGitHubID(targetGithubID)
+	card, err := s.cardRepo.FindByGitHubID(ctx, targetGithubID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("card not found: githubID=%s", targetGithubID)
@@ -167,7 +167,7 @@ func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID 
 	}
 
 	// デッキから削除
-	if err := s.cardRepo.RemoveFromCollectedCards(collectorGithubID, card.ID); err != nil {
+	if err := s.cardRepo.RemoveFromCollectedCards(ctx, collectorGithubID, card.ID); err != nil {
 		return nil, fmt.Errorf("failed to remove card from deck: %w", err)
 	}
 
@@ -182,7 +182,7 @@ func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID 
 // RefreshAllCards はデータベース内の全カードをGitHub APIから最新情報で更新する
 func (s *CardService) RefreshAllCards(ctx context.Context, githubClient GitHubClient) ([]domain.Card, error) {
 	// データベースから全カードを取得
-	cards, err := s.cardRepo.FindAllCardsInDB()
+	cards, err := s.cardRepo.FindAllCardsInDB(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all cards from db: %w", err)
 	}
@@ -198,7 +198,7 @@ func (s *CardService) RefreshAllCards(ctx context.Context, githubClient GitHubCl
 
 	// 各カードを更新
 	for i := range cards {
-		if err := s.cardRepo.Update(&cards[i]); err != nil {
+		if err := s.cardRepo.Update(ctx, &cards[i]); err != nil {
 			return nil, fmt.Errorf("failed to update card %s: %w", cards[i].GithubID, err)
 		}
 	}

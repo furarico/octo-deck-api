@@ -83,11 +83,12 @@ func main() {
 	skipped := 0
 	failed := 0
 
+	ctx := context.Background()
 	for _, member := range members {
 		githubID := strconv.FormatInt(member.ID, 10)
 
 		// 既存カードの確認
-		_, err := cardRepo.FindByGitHubID(githubID)
+		_, err := cardRepo.FindByGitHubID(ctx, githubID)
 		if err == nil {
 			// カードが既に存在する
 			log.Printf("Skipping %s (ID: %s): card already exists", member.Login, githubID)
@@ -119,7 +120,7 @@ func main() {
 
 		// カード作成
 		card := domain.NewCard(githubID, member.NodeID, color, blocks, mostUsedLanguage, member.Login, member.FullName, member.AvatarURL)
-		if err := cardRepo.Create(card); err != nil {
+		if err := cardRepo.Create(ctx, card); err != nil {
 			log.Printf("Failed to create card for %s (ID: %s): %v", member.Login, githubID, err)
 			failed++
 			continue

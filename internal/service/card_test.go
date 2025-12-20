@@ -56,7 +56,7 @@ func TestGetAllCards(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllFunc: func(githubID string) ([]domain.Card, error) {
+					FindAllFunc: func(ctx context.Context, githubID string) ([]domain.Card, error) {
 						return []domain.Card{
 							*createTestCard("12345"),
 							*createTestCard("67890"),
@@ -72,7 +72,7 @@ func TestGetAllCards(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllFunc: func(githubID string) ([]domain.Card, error) {
+					FindAllFunc: func(ctx context.Context, githubID string) ([]domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
@@ -84,11 +84,12 @@ func TestGetAllCards(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
 			cardRepo := tt.setupRepo()
 			identiconGen := &identicon.MockIdenticonGenerator{}
 
 			service := NewCardService(cardRepo, identiconGen)
-			cards, err := service.GetAllCards(tt.githubID)
+			cards, err := service.GetAllCards(ctx, tt.githubID)
 
 			if tt.wantErr {
 				if err == nil {
@@ -126,7 +127,7 @@ func TestGetCardByGitHubID(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
 				}
@@ -139,7 +140,7 @@ func TestGetCardByGitHubID(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, nil
 					},
 				}
@@ -153,7 +154,7 @@ func TestGetCardByGitHubID(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
@@ -167,7 +168,7 @@ func TestGetCardByGitHubID(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
 				}
@@ -187,7 +188,7 @@ func TestGetCardByGitHubID(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						card := createTestCard("invalid_id")
 						return card, nil
 					},
@@ -249,7 +250,7 @@ func TestGetMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
 				}
@@ -262,7 +263,7 @@ func TestGetMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, nil
 					},
 				}
@@ -276,7 +277,7 @@ func TestGetMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
@@ -290,7 +291,7 @@ func TestGetMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
 				}
@@ -359,7 +360,7 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
 				}
@@ -376,10 +377,10 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, gorm.ErrRecordNotFound
 					},
-					CreateFunc: func(card *domain.Card) error {
+					CreateFunc: func(ctx context.Context, card *domain.Card) error {
 						return nil
 					},
 				}
@@ -400,7 +401,7 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
@@ -417,7 +418,7 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, gorm.ErrRecordNotFound
 					},
 				}
@@ -438,10 +439,10 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, gorm.ErrRecordNotFound
 					},
-					CreateFunc: func(card *domain.Card) error {
+					CreateFunc: func(ctx context.Context, card *domain.Card) error {
 						return fmt.Errorf("create error")
 					},
 				}
@@ -462,7 +463,7 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			githubID: "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
+					FindMyCardFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, gorm.ErrRecordNotFound
 					},
 				}
@@ -538,10 +539,10 @@ func TestAddCardToDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
-					AddToCollectedCardsFunc: func(collectorGithubID string, cardID domain.CardID) error {
+					AddToCollectedCardsFunc: func(ctx context.Context, collectorGithubID string, cardID domain.CardID) error {
 						return nil
 					},
 				}
@@ -555,7 +556,7 @@ func TestAddCardToDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, gorm.ErrRecordNotFound
 					},
 				}
@@ -570,7 +571,7 @@ func TestAddCardToDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
@@ -585,10 +586,10 @@ func TestAddCardToDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
-					AddToCollectedCardsFunc: func(collectorGithubID string, cardID domain.CardID) error {
+					AddToCollectedCardsFunc: func(ctx context.Context, collectorGithubID string, cardID domain.CardID) error {
 						return fmt.Errorf("add error")
 					},
 				}
@@ -603,10 +604,10 @@ func TestAddCardToDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
-					AddToCollectedCardsFunc: func(collectorGithubID string, cardID domain.CardID) error {
+					AddToCollectedCardsFunc: func(ctx context.Context, collectorGithubID string, cardID domain.CardID) error {
 						return nil
 					},
 				}
@@ -675,10 +676,10 @@ func TestRemoveCardFromDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
-					RemoveFromCollectedCardsFunc: func(collectorGithubID string, cardID domain.CardID) error {
+					RemoveFromCollectedCardsFunc: func(ctx context.Context, collectorGithubID string, cardID domain.CardID) error {
 						return nil
 					},
 				}
@@ -692,7 +693,7 @@ func TestRemoveCardFromDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, gorm.ErrRecordNotFound
 					},
 				}
@@ -707,7 +708,7 @@ func TestRemoveCardFromDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
@@ -722,10 +723,10 @@ func TestRemoveCardFromDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
-					RemoveFromCollectedCardsFunc: func(collectorGithubID string, cardID domain.CardID) error {
+					RemoveFromCollectedCardsFunc: func(ctx context.Context, collectorGithubID string, cardID domain.CardID) error {
 						return fmt.Errorf("remove error")
 					},
 				}
@@ -740,10 +741,10 @@ func TestRemoveCardFromDeck(t *testing.T) {
 			targetGithubID:    "12345",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindByGitHubIDFunc: func(githubID string) (*domain.Card, error) {
+					FindByGitHubIDFunc: func(ctx context.Context, githubID string) (*domain.Card, error) {
 						return createTestCard(githubID), nil
 					},
-					RemoveFromCollectedCardsFunc: func(collectorGithubID string, cardID domain.CardID) error {
+					RemoveFromCollectedCardsFunc: func(ctx context.Context, collectorGithubID string, cardID domain.CardID) error {
 						return nil
 					},
 				}
@@ -1220,13 +1221,13 @@ func TestRefreshAllCards(t *testing.T) {
 			name: "正常に全カードを更新できる",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+					FindAllCardsInDBFunc: func(ctx context.Context) ([]domain.Card, error) {
 						return []domain.Card{
 							*createTestCard("12345"),
 							*createTestCard("67890"),
 						}, nil
 					},
-					UpdateFunc: func(card *domain.Card) error {
+					UpdateFunc: func(ctx context.Context, card *domain.Card) error {
 						return nil
 					},
 				}
@@ -1275,7 +1276,7 @@ func TestRefreshAllCards(t *testing.T) {
 			name: "カードが存在しない場合は空のスライスを返す",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+					FindAllCardsInDBFunc: func(ctx context.Context) ([]domain.Card, error) {
 						return []domain.Card{}, nil
 					},
 				}
@@ -1295,7 +1296,7 @@ func TestRefreshAllCards(t *testing.T) {
 			name: "Repositoryエラーが発生した場合",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+					FindAllCardsInDBFunc: func(ctx context.Context) ([]domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
@@ -1310,7 +1311,7 @@ func TestRefreshAllCards(t *testing.T) {
 			name: "GitHub APIエラーが発生した場合",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+					FindAllCardsInDBFunc: func(ctx context.Context) ([]domain.Card, error) {
 						return []domain.Card{
 							*createTestCard("12345"),
 						}, nil
@@ -1331,12 +1332,12 @@ func TestRefreshAllCards(t *testing.T) {
 			name: "カード更新時のRepositoryエラー",
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
-					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+					FindAllCardsInDBFunc: func(ctx context.Context) ([]domain.Card, error) {
 						return []domain.Card{
 							*createTestCard("12345"),
 						}, nil
 					},
-					UpdateFunc: func(card *domain.Card) error {
+					UpdateFunc: func(ctx context.Context, card *domain.Card) error {
 						return fmt.Errorf("update error")
 					},
 				}

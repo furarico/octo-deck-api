@@ -11,12 +11,12 @@ import (
 // (DELETE /communities/{id})
 func (h *Handler) DeleteCommunity(ctx context.Context, request api.DeleteCommunityRequestObject) (api.DeleteCommunityResponseObject, error) {
 	// 削除前にコミュニティ情報を取得
-	community, err := h.communityService.GetCommunityByID(request.Id)
+	community, err := h.communityService.GetCommunityByID(ctx, request.Id)
 	if err != nil {
 		return nil, fmt.Errorf("community not found: %w", err)
 	}
 
-	if err := h.communityService.DeleteCommunity(request.Id); err != nil {
+	if err := h.communityService.DeleteCommunity(ctx, request.Id); err != nil {
 		return nil, fmt.Errorf("failed to delete community: %w", err)
 	}
 

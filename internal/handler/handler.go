@@ -24,7 +24,7 @@ const (
 
 // CardServiceInterface はハンドラーが必要とするサービスのインターフェース
 type CardServiceInterface interface {
-	GetAllCards(githubID string) ([]domain.Card, error)
+	GetAllCards(ctx context.Context, githubID string) ([]domain.Card, error)
 	GetCardByGitHubID(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
 	GetMyCard(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
 	GetOrCreateMyCard(ctx context.Context, githubID string, nodeID string, githubClient service.GitHubClient) (*domain.Card, error)
@@ -40,15 +40,15 @@ type StatsServiceInterface interface {
 
 // CommunityServiceInterface はハンドラーが必要とするコミュニティサービスのインターフェース
 type CommunityServiceInterface interface {
-	GetAllCommunities(githubID string) ([]domain.Community, error)
-	GetCommunityByID(id string) (*domain.Community, error)
-	GetCommunityWithHighlightedCard(id string) (*domain.Community, *domain.HighlightedCard, error)
+	GetAllCommunities(ctx context.Context, githubID string) ([]domain.Community, error)
+	GetCommunityByID(ctx context.Context, id string) (*domain.Community, error)
+	GetCommunityWithHighlightedCard(ctx context.Context, id string) (*domain.Community, *domain.HighlightedCard, error)
 	RefreshHighlightedCard(ctx context.Context, id string, githubClient service.GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
-	GetCommunityCards(id string) ([]domain.Card, error)
-	CreateCommunityWithPeriod(name string, startDateTime, endDateTime time.Time) (*domain.Community, error)
-	DeleteCommunity(id string) error
-	AddCardToCommunity(communityID string, cardID string) error
-	RemoveCardFromCommunity(communityID string, cardID string) error
+	GetCommunityCards(ctx context.Context, id string) ([]domain.Card, error)
+	CreateCommunityWithPeriod(ctx context.Context, name string, startDateTime, endDateTime time.Time) (*domain.Community, error)
+	DeleteCommunity(ctx context.Context, id string) error
+	AddCardToCommunity(ctx context.Context, communityID string, cardID string) error
+	RemoveCardFromCommunity(ctx context.Context, communityID string, cardID string) error
 }
 
 type Handler struct {

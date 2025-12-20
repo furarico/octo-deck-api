@@ -15,7 +15,7 @@ func (h *Handler) GetCards(ctx context.Context, request api.GetCardsRequestObjec
 		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
-	cards, err := h.cardService.GetAllCards(githubID)
+	cards, err := h.cardService.GetAllCards(ctx, githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cards: %w", err)
 	}

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -27,7 +28,7 @@ func TestGetCommunities(t *testing.T) {
 			name: "正常にコミュニティ一覧を取得できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetAllCommunitiesFunc: func(githubID string) ([]domain.Community, error) {
+					GetAllCommunitiesFunc: func(ctx context.Context, githubID string) ([]domain.Community, error) {
 						return []domain.Community{
 							{
 								ID:   domain.NewCommunityID(),
@@ -59,7 +60,7 @@ func TestGetCommunities(t *testing.T) {
 			name: "コミュニティが空の場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetAllCommunitiesFunc: func(githubID string) ([]domain.Community, error) {
+					GetAllCommunitiesFunc: func(ctx context.Context, githubID string) ([]domain.Community, error) {
 						return []domain.Community{}, nil
 					},
 				}
@@ -82,7 +83,7 @@ func TestGetCommunities(t *testing.T) {
 			name: "サービスでエラーが発生した場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetAllCommunitiesFunc: func(githubID string) ([]domain.Community, error) {
+					GetAllCommunitiesFunc: func(ctx context.Context, githubID string) ([]domain.Community, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}

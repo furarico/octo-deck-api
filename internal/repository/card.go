@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/furarico/octo-deck-api/internal/database"
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/google/uuid"
@@ -16,9 +18,9 @@ func NewCardRepository(db *gorm.DB) *cardRepository {
 }
 
 // FindAll はGitHubIDから自分が集めたカードを全て取得する
-func (r *cardRepository) FindAll(githubID string) ([]domain.Card, error) {
+func (r *cardRepository) FindAll(ctx context.Context, githubID string) ([]domain.Card, error) {
 	var collectedCards []database.CollectedCard
-	if err := r.db.
+	if err := r.db.WithContext(ctx).
 		Preload("Card").
 		Where("collector_github_id = ?", githubID).
 		Find(&collectedCards).Error; err != nil {
@@ -34,9 +36,9 @@ func (r *cardRepository) FindAll(githubID string) ([]domain.Card, error) {
 }
 
 // FindByGitHubID はGitHub IDでカードを取得する
-func (r *cardRepository) FindByGitHubID(githubID string) (*domain.Card, error) {
+func (r *cardRepository) FindByGitHubID(ctx context.Context, githubID string) (*domain.Card, error) {
 	var dbCard database.Card
-	if err := r.db.First(&dbCard, "github_id = ?", githubID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&dbCard, "github_id = ?", githubID).Error; err != nil {
 		return nil, err
 	}
 
@@ -44,9 +46,9 @@ func (r *cardRepository) FindByGitHubID(githubID string) (*domain.Card, error) {
 }
 
 // FindMyCard はGitHubIDから自分のカードを取得する
-func (r *cardRepository) FindMyCard(githubID string) (*domain.Card, error) {
+func (r *cardRepository) FindMyCard(ctx context.Context, githubID string) (*domain.Card, error) {
 	var dbCard database.Card
-	if err := r.db.First(&dbCard, "github_id = ?", githubID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&dbCard, "github_id = ?", githubID).Error; err != nil {
 		return nil, err
 	}
 
@@ -54,37 +56,37 @@ func (r *cardRepository) FindMyCard(githubID string) (*domain.Card, error) {
 }
 
 // Create は新しいカードを作成する
-func (r *cardRepository) Create(card *domain.Card) error {
+func (r *cardRepository) Create(ctx context.Context, card *domain.Card) error {
 	dbCard := database.CardFromDomain(card)
-	return r.db.Create(dbCard).Error
+	return r.db.WithContext(ctx).Create(dbCard).Error
 }
 
 // AddToCollectedCards はカードをデッキに追加する
-func (r *cardRepository) AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error {
+func (r *cardRepository) AddToCollectedCards(ctx context.Context, collectorGithubID string, cardID domain.CardID) error {
 	collectedCard := &database.CollectedCard{
 		CollectorGithubID: collectorGithubID,
 		CardID:            uuid.UUID(cardID),
 	}
-	return r.db.Create(collectedCard).Error
+	return r.db.WithContext(ctx).Create(collectedCard).Error
 }
 
 // RemoveFromCollectedCards はカードをデッキから削除する
-func (r *cardRepository) RemoveFromCollectedCards(collectorGithubID string, cardID domain.CardID) error {
-	return r.db.
+func (r *cardRepository) RemoveFromCollectedCards(ctx context.Context, collectorGithubID string, cardID domain.CardID) error {
+	return r.db.WithContext(ctx).
 		Where("collector_github_id = ? AND card_id = ?", collectorGithubID, uuid.UUID(cardID)).
 		Delete(&database.CollectedCard{}).Error
 }
 
 // Update はカード情報を更新する
-func (r *cardRepository) Update(card *domain.Card) error {
+func (r *cardRepository) Update(ctx context.Context, card *domain.Card) error {
 	dbCard := database.CardFromDomain(card)
-	return r.db.Model(&database.Card{}).Where("id = ?", dbCard.ID).Updates(dbCard).Error
+	return r.db.WithContext(ctx).Model(&database.Card{}).Where("id = ?", dbCard.ID).Updates(dbCard).Error
 }
 
 // FindAllCardsInDB はデータベース内の全カードを取得する
-func (r *cardRepository) FindAllCardsInDB() ([]domain.Card, error) {
+func (r *cardRepository) FindAllCardsInDB(ctx context.Context) ([]domain.Card, error) {
 	var dbCards []database.Card
-	if err := r.db.Find(&dbCards).Error; err != nil {
+	if err := r.db.WithContext(ctx).Find(&dbCards).Error; err != nil {
 		return nil, err
 	}
 

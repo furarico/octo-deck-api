@@ -15,6 +15,7 @@ func (h *Handler) CreateCommunity(ctx context.Context, request api.CreateCommuni
 	}
 
 	community, err := h.communityService.CreateCommunityWithPeriod(
+		ctx,
 		request.Body.Name,
 		request.Body.StartDateTime,
 		request.Body.EndDateTime,

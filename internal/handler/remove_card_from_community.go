@@ -29,7 +29,7 @@ func (h *Handler) RemoveCardFromCommunity(ctx context.Context, request api.Remov
 
 	// コミュニティからカードを削除
 	cardID := uuid.UUID(card.ID).String()
-	if err := h.communityService.RemoveCardFromCommunity(request.Id, cardID); err != nil {
+	if err := h.communityService.RemoveCardFromCommunity(ctx, request.Id, cardID); err != nil {
 		return nil, fmt.Errorf("failed to remove card from community: %w", err)
 	}
 

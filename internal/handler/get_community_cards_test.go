@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -27,7 +28,7 @@ func TestGetCommunityCards(t *testing.T) {
 			name: "正常にコミュニティのカード一覧を取得できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
+					GetCommunityCardsFunc: func(ctx context.Context, id string) ([]domain.Card, error) {
 						return []domain.Card{
 							{
 								ID:       domain.NewCardID(),
@@ -76,7 +77,7 @@ func TestGetCommunityCards(t *testing.T) {
 			name: "カードが空の場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
+					GetCommunityCardsFunc: func(ctx context.Context, id string) ([]domain.Card, error) {
 						return []domain.Card{}, nil
 					},
 				}
@@ -99,7 +100,7 @@ func TestGetCommunityCards(t *testing.T) {
 			name: "サービスでエラーが発生した場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
+					GetCommunityCardsFunc: func(ctx context.Context, id string) ([]domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
