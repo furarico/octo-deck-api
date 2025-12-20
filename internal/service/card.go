@@ -15,6 +15,7 @@ type CardRepository interface {
 	FindAll(githubID string) ([]domain.Card, error)
 	FindByGitHubID(githubID string) (*domain.Card, error)
 	FindMyCard(githubID string) (*domain.Card, error)
+	FindAllCardsInDB() ([]domain.Card, error)
 	Create(card *domain.Card) error
 	Update(card *domain.Card) error
 	AddToCollectedCards(collectorGithubID string, cardID domain.CardID) error
@@ -176,6 +177,33 @@ func (s *CardService) RemoveCardFromDeck(ctx context.Context, collectorGithubID 
 	}
 
 	return card, nil
+}
+
+// RefreshAllCards はデータベース内の全カードをGitHub APIから最新情報で更新する
+func (s *CardService) RefreshAllCards(ctx context.Context, githubClient GitHubClient) ([]domain.Card, error) {
+	// データベースから全カードを取得
+	cards, err := s.cardRepo.FindAllCardsInDB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all cards from db: %w", err)
+	}
+
+	if len(cards) == 0 {
+		return []domain.Card{}, nil
+	}
+
+	// GitHub APIから最新情報を取得して各カードに設定
+	if err := EnrichCardsWithGitHubInfo(ctx, cards, githubClient); err != nil {
+		return nil, fmt.Errorf("failed to enrich cards with github info: %w", err)
+	}
+
+	// 各カードを更新
+	for i := range cards {
+		if err := s.cardRepo.Update(&cards[i]); err != nil {
+			return nil, fmt.Errorf("failed to update card %s: %w", cards[i].GithubID, err)
+		}
+	}
+
+	return cards, nil
 }
 
 // EnrichCardWithGitHubInfo はGitHub APIからユーザー情報を取得してCardに設定する
