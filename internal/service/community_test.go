@@ -284,10 +284,15 @@ func TestGetCommunityCards(t *testing.T) {
 			setupRepo: func() *repository.MockCommunityRepository {
 				return &repository.MockCommunityRepository{
 					FindCardsFunc: func(id string) ([]domain.Card, error) {
-						return []domain.Card{
-							*createTestCard("12345"),
-							*createTestCard("67890"),
-						}, nil
+						card1 := createTestCard("12345")
+						card1.UserName = "user1"
+						card1.FullName = "User One"
+						card1.IconUrl = "https://example.com/user1.png"
+						card2 := createTestCard("67890")
+						card2.UserName = "user2"
+						card2.FullName = "User Two"
+						card2.IconUrl = "https://example.com/user2.png"
+						return []domain.Card{*card1, *card2}, nil
 					},
 				}
 			},
@@ -324,24 +329,10 @@ func TestGetCommunityCards(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
 			communityRepo := tt.setupRepo()
-			mockGitHub := &github.MockClient{
-				GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
-					return &github.UserInfo{
-						ID:        id,
-						Login:     "user",
-						Name:      "User",
-						AvatarURL: "https://example.com/avatar.png",
-					}, nil
-				},
-				GetMostUsedLanguageFunc: func(ctx context.Context, login string) (string, string, error) {
-					return "Go", "#00ADD8", nil
-				},
-			}
 			cardRepo := &repository.MockCardRepository{}
 			service := NewCommunityService(communityRepo, cardRepo)
-			cards, err := service.GetCommunityCards(ctx, tt.communityID, mockGitHub)
+			cards, err := service.GetCommunityCards(tt.communityID)
 
 			if tt.wantErr {
 				if err == nil {
@@ -358,12 +349,6 @@ func TestGetCommunityCards(t *testing.T) {
 				}
 				if len(cards) != tt.wantCount {
 					t.Errorf("カード数が期待と異なります: 期待=%d, 実際=%d", tt.wantCount, len(cards))
-				}
-				// fullname / avatar url が補完されていることの簡易チェック
-				for _, c := range cards {
-					if c.FullName == "" || c.IconUrl == "" {
-						t.Errorf("カードの FullName または IconUrl が補完されていません")
-					}
 				}
 			}
 		})
