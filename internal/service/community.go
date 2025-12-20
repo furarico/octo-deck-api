@@ -20,6 +20,7 @@ type CommunityRepository interface {
 	AddCard(ctx context.Context, communityID string, cardID string) error
 	RemoveCard(ctx context.Context, communityID string, cardID string) error
 	UpdateHighlightedCard(ctx context.Context, communityID string, highlightedCard *domain.HighlightedCard) error
+	UpdateCommunityCardContributions(ctx context.Context, communityID string, cardContributions map[string]int) error
 }
 
 type CommunityService struct {
@@ -134,6 +135,34 @@ func (s *CommunityService) RefreshHighlightedCard(ctx context.Context, id string
 
 	// 各カテゴリのベストユーザーを計算し、カード情報を構築
 	highlightedCard := calculateHighlightedCardFromFullInfo(usersFullInfo, cards, cardIndexByNodeID, nodeIDs)
+
+	// login -> nodeID のマッピングを構築（usersFullInfoの順序はnodeIDsと同じであることを前提とする）
+	loginToNodeID := make(map[string]string)
+	for i, info := range usersFullInfo {
+		if i < len(nodeIDs) {
+			loginToNodeID[info.Login] = nodeIDs[i]
+		}
+	}
+
+	// コミュニティカードのコントリビュート数を更新
+	cardContributions := make(map[string]int)
+	for _, info := range usersFullInfo {
+		nodeID, ok := loginToNodeID[info.Login]
+		if !ok {
+			continue
+		}
+		cardIdx, ok := cardIndexByNodeID[nodeID]
+		if !ok {
+			continue
+		}
+		card := cards[cardIdx]
+		cardIDStr := card.ID.String()
+		cardContributions[cardIDStr] = info.Total
+	}
+
+	if err := s.communityRepo.UpdateCommunityCardContributions(ctx, id, cardContributions); err != nil {
+		return nil, nil, fmt.Errorf("failed to update community card contributions: %w", err)
+	}
 
 	// 各カードの情報をデータベースに保存
 	cardsToUpdate := []*domain.Card{

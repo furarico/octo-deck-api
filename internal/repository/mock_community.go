@@ -7,15 +7,16 @@ import (
 )
 
 type MockCommunityRepository struct {
-	FindAllFunc                     func(ctx context.Context, githubID string) ([]domain.Community, error)
-	FindByIDFunc                    func(ctx context.Context, id string) (*domain.Community, error)
-	FindByIDWithHighlightedCardFunc func(ctx context.Context, id string) (*domain.Community, error)
-	FindCardsFunc                   func(ctx context.Context, id string) ([]domain.Card, error)
-	CreateFunc                      func(ctx context.Context, community *domain.Community) error
-	DeleteFunc                      func(ctx context.Context, id string) error
-	AddCardFunc                     func(ctx context.Context, communityID string, cardID string) error
-	RemoveCardFunc                  func(ctx context.Context, communityID string, cardID string) error
-	UpdateHighlightedCardFunc       func(ctx context.Context, communityID string, highlightedCard *domain.HighlightedCard) error
+	FindAllFunc                            func(ctx context.Context, githubID string) ([]domain.Community, error)
+	FindByIDFunc                           func(ctx context.Context, id string) (*domain.Community, error)
+	FindByIDWithHighlightedCardFunc        func(ctx context.Context, id string) (*domain.Community, error)
+	FindCardsFunc                          func(ctx context.Context, id string) ([]domain.Card, error)
+	CreateFunc                             func(ctx context.Context, community *domain.Community) error
+	DeleteFunc                             func(ctx context.Context, id string) error
+	AddCardFunc                            func(ctx context.Context, communityID string, cardID string) error
+	RemoveCardFunc                         func(ctx context.Context, communityID string, cardID string) error
+	UpdateHighlightedCardFunc              func(ctx context.Context, communityID string, highlightedCard *domain.HighlightedCard) error
+	UpdateCommunityCardContributionsFunc   func(ctx context.Context, communityID string, cardContributions map[string]int) error
 }
 
 func NewMockCommunityRepository() *MockCommunityRepository {
@@ -90,6 +91,14 @@ func (r *MockCommunityRepository) FindByIDWithHighlightedCard(ctx context.Contex
 func (r *MockCommunityRepository) UpdateHighlightedCard(ctx context.Context, communityID string, highlightedCard *domain.HighlightedCard) error {
 	if r.UpdateHighlightedCardFunc != nil {
 		return r.UpdateHighlightedCardFunc(ctx, communityID, highlightedCard)
+	}
+	return nil
+}
+
+// UpdateCommunityCardContributions はコミュニティカードのコントリビュート数を更新する
+func (r *MockCommunityRepository) UpdateCommunityCardContributions(ctx context.Context, communityID string, cardContributions map[string]int) error {
+	if r.UpdateCommunityCardContributionsFunc != nil {
+		return r.UpdateCommunityCardContributionsFunc(ctx, communityID, cardContributions)
 	}
 	return nil
 }

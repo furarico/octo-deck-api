@@ -9,10 +9,11 @@ import (
 )
 
 type CommunityCard struct {
-	ID          uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	CommunityID uuid.UUID `gorm:"type:uuid;not null"`
-	CardID      uuid.UUID `gorm:"type:uuid;not null"`
-	JoinedAt    time.Time `gorm:"autoCreateTime"`
+	ID                uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	CommunityID       uuid.UUID `gorm:"type:uuid;not null"`
+	CardID            uuid.UUID `gorm:"type:uuid;not null"`
+	JoinedAt          time.Time `gorm:"autoCreateTime"`
+	TotalContribution int       `gorm:"default:0"`
 
 	Card      Card      `gorm:"foreignKey:CardID"`
 	Community Community `gorm:"foreignKey:CommunityID"`
@@ -27,9 +28,10 @@ func (cc *CommunityCard) BeforeCreate(tx *gorm.DB) error {
 
 func (cc *CommunityCard) ToDomain() *domain.CommunityCard {
 	return &domain.CommunityCard{
-		ID:          domain.CommunityCardID(cc.ID),
-		CommunityID: domain.CommunityID(cc.CommunityID),
-		CardID:      domain.CardID(cc.CardID),
-		JoinedAt:    cc.JoinedAt,
+		ID:                domain.CommunityCardID(cc.ID),
+		CommunityID:       domain.CommunityID(cc.CommunityID),
+		CardID:            domain.CardID(cc.CardID),
+		JoinedAt:          cc.JoinedAt,
+		TotalContribution: cc.TotalContribution,
 	}
 }

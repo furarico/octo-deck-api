@@ -112,12 +112,13 @@ func (r *communityRepository) UpdateHighlightedCard(ctx context.Context, communi
 	return r.db.WithContext(ctx).Model(&database.Community{}).Where("id = ?", communityUUID).Updates(updates).Error
 }
 
-// FindCards は指定したコミュニティIDのカード一覧を取得する
+// FindCards は指定したコミュニティIDのカード一覧をトータルコントリビューション数でソートして取得する
 func (r *communityRepository) FindCards(ctx context.Context, id string) ([]domain.Card, error) {
 	var cards []database.Card
 	if err := r.db.WithContext(ctx).
 		Joins("JOIN community_cards cc ON cc.card_id = cards.id").
 		Where("cc.community_id = ?", id).
+		Order("cc.total_contribution DESC").
 		Find(&cards).Error; err != nil {
 		return nil, err
 	}
@@ -180,6 +181,30 @@ func (r *communityRepository) RemoveCard(ctx context.Context, communityID string
 	return r.db.WithContext(ctx).
 		Where("community_id = ? AND card_id = ?", communityUUID, cardUUID).
 		Delete(&database.CommunityCard{}).Error
+}
+
+// UpdateCommunityCardContributions は指定したコミュニティのカードのコントリビュート数を一括更新する
+func (r *communityRepository) UpdateCommunityCardContributions(ctx context.Context, communityID string, cardContributions map[string]int) error {
+	communityUUID, err := parseUUID(communityID)
+	if err != nil {
+		return fmt.Errorf("invalid community id: %w", err)
+	}
+
+	for cardIDStr, totalContribution := range cardContributions {
+		cardUUID, err := parseUUID(cardIDStr)
+		if err != nil {
+			return fmt.Errorf("invalid card id: %w", err)
+		}
+
+		if err := r.db.WithContext(ctx).
+			Model(&database.CommunityCard{}).
+			Where("community_id = ? AND card_id = ?", communityUUID, cardUUID).
+			Update("total_contribution", totalContribution).Error; err != nil {
+			return fmt.Errorf("failed to update community card contribution: %w", err)
+		}
+	}
+
+	return nil
 }
 
 // parseUUID はstringをuuid.UUIDに変換する
