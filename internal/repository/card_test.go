@@ -473,6 +473,60 @@ func TestCardRepository_RemoveFromCollectedCards(t *testing.T) {
 	}
 }
 
+// CardRepositoryのFindAllCardsInDBメソッドをテスト
+func TestCardRepository_FindAllCardsInDB(t *testing.T) {
+	db := SetupTestDB(t)
+
+	tests := []struct {
+		name          string
+		setup         func(db *gorm.DB)
+		wantCardCount int
+		wantErr       bool
+	}{
+		{
+			name: "データベース内の全カードを取得できる",
+			setup: func(db *gorm.DB) {
+				// カードを3枚作成
+				card1 := createTestCard("card1", "U_card1")
+				card2 := createTestCard("card2", "U_card2")
+				card3 := createTestCard("card3", "U_card3")
+				db.Create(database.CardFromDomain(card1))
+				db.Create(database.CardFromDomain(card2))
+				db.Create(database.CardFromDomain(card3))
+			},
+			wantCardCount: 3,
+			wantErr:       false,
+		},
+		{
+			name: "カードがない場合は空のスライスを返す",
+			setup: func(db *gorm.DB) {
+				// データを作成しない
+			},
+			wantCardCount: 0,
+			wantErr:       false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			CleanupTestData(t, db)
+			tt.setup(db)
+
+			repo := NewCardRepository(db)
+			cards, err := repo.FindAllCardsInDB()
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FindAllCardsInDB() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if len(cards) != tt.wantCardCount {
+				t.Errorf("FindAllCardsInDB() returned %d cards, want %d", len(cards), tt.wantCardCount)
+			}
+		})
+	}
+}
+
 // CardRepositoryのPostgres特定の機能をテスト
 func TestCardRepository_PostgresSpecificFeatures(t *testing.T) {
 	db := SetupTestDB(t)
