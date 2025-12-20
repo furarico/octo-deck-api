@@ -123,6 +123,11 @@ func (c *Client) GetUserStats(ctx context.Context, githubID int64) (*UserStats, 
 		}
 	}
 
+	// 言語が見つからない場合はデフォルト値を設定
+	if mostUsedLanguage == "" {
+		mostUsedLanguage = "Unknown"
+	}
+
 	stats := &UserStats{
 		Contributions:         contributions,
 		MostUsedLanguage:      mostUsedLanguage,
