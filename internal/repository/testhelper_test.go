@@ -22,7 +22,7 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 
 	// PostgreSQLコンテナを起動
 	pgContainer, err := postgres.Run(ctx,
-		"postgres:16-alpine",
+		"postgres:17-alpine",
 		postgres.WithDatabase("testdb"),
 		postgres.WithUsername("testuser"),
 		postgres.WithPassword("testpass"),
