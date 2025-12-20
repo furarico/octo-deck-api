@@ -127,11 +127,6 @@ func (s *CardService) GetOrCreateMyCard(ctx context.Context, githubID string, no
 		}
 	}
 
-	// GitHub APIからユーザー情報を取得して補完
-	if err := EnrichCardWithGitHubInfo(ctx, card, githubClient); err != nil {
-		return nil, err
-	}
-
 	return card, nil
 }
 
