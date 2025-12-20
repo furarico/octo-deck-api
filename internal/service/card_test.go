@@ -47,7 +47,6 @@ func TestGetAllCards(t *testing.T) {
 		name          string
 		githubID      string
 		setupRepo     func() *repository.MockCardRepository
-		setupGitHub   func() *github.MockClient
 		wantErr       bool
 		wantErrMsg    string
 		wantCardCount int
@@ -65,7 +64,6 @@ func TestGetAllCards(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub:   createMockGitHubClient,
 			wantErr:       false,
 			wantCardCount: 2,
 		},
@@ -79,56 +77,18 @@ func TestGetAllCards(t *testing.T) {
 					},
 				}
 			},
-			setupGitHub: createMockGitHubClient,
-			wantErr:     true,
-			wantErrMsg:  "failed to get all cards",
-		},
-		{
-			name:     "GitHubClientエラーが発生した場合",
-			githubID: "12345",
-			setupRepo: func() *repository.MockCardRepository {
-				return &repository.MockCardRepository{
-					FindAllFunc: func(githubID string) ([]domain.Card, error) {
-						return []domain.Card{*createTestCard("12345")}, nil
-					},
-				}
-			},
-			setupGitHub: func() *github.MockClient {
-				return &github.MockClient{
-					GetUsersByIDsFunc: func(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error) {
-						return nil, fmt.Errorf("github api error")
-					},
-				}
-			},
 			wantErr:    true,
-			wantErrMsg: "failed to get users info",
-		},
-		{
-			name:     "無効なGitHubIDの場合",
-			githubID: "12345",
-			setupRepo: func() *repository.MockCardRepository {
-				return &repository.MockCardRepository{
-					FindAllFunc: func(githubID string) ([]domain.Card, error) {
-						card := createTestCard("invalid_id")
-						return []domain.Card{*card}, nil
-					},
-				}
-			},
-			setupGitHub: createMockGitHubClient,
-			wantErr:     true,
-			wantErrMsg:  "invalid github id",
+			wantErrMsg: "failed to get all cards",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
 			cardRepo := tt.setupRepo()
 			identiconGen := &identicon.MockIdenticonGenerator{}
-			githubClient := tt.setupGitHub()
 
 			service := NewCardService(cardRepo, identiconGen)
-			cards, err := service.GetAllCards(ctx, tt.githubID, githubClient)
+			cards, err := service.GetAllCards(tt.githubID)
 
 			if tt.wantErr {
 				if err == nil {

@@ -10,17 +10,12 @@ import (
 // カード一覧取得
 // (GET /cards)
 func (h *Handler) GetCards(ctx context.Context, request api.GetCardsRequestObject) (api.GetCardsResponseObject, error) {
-	githubClient, err := getGitHubClient(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unauthorized: %w", err)
-	}
-
 	githubID, err := getGitHubID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
-	cards, err := h.cardService.GetAllCards(ctx, githubID, githubClient)
+	cards, err := h.cardService.GetAllCards(githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cards: %w", err)
 	}
