@@ -9,6 +9,11 @@ erDiagram
         datetime created_at
         string color
         json blocks_data
+        string user_name
+        string full_name
+        string icon_url
+        string most_used_language_name
+        string most_used_language_color
     }
 
     COLLECTED_CARDS {
@@ -24,6 +29,11 @@ erDiagram
         datetime started_at
         datetime ended_at
         datetime created_at
+        string best_contributor_card_id FK
+        string best_committer_card_id FK
+        string best_issuer_card_id FK
+        string best_pull_requester_card_id FK
+        string best_reviewer_card_id FK
     }
 
     COMMUNITY_CARDS {
