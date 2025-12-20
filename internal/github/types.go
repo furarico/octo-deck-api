@@ -13,10 +13,6 @@ type Contribution struct {
 	Count int
 }
 
-type ContributionStats struct {
-	Contributions []Contribution
-}
-
 type UserStats struct {
 	Contributions         []Contribution
 	MostUsedLanguage      string
@@ -30,16 +26,6 @@ type ContributionDetail struct {
 	CommitCount      int
 	IssueCount       int
 	PullRequestCount int
-}
-
-// UserContributionStats は複数ユーザーの貢献統計を表す
-type UserContributionStats struct {
-	Login   string
-	Total   int
-	Commits int
-	Issues  int
-	PRs     int
-	Reviews int
 }
 
 // UserFullInfo はユーザーの全情報を保持する（統合クエリ用）
