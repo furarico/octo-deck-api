@@ -463,22 +463,26 @@ func TestGetOrCreateMyCard(t *testing.T) {
 			setupRepo: func() *repository.MockCardRepository {
 				return &repository.MockCardRepository{
 					FindMyCardFunc: func(githubID string) (*domain.Card, error) {
-						return createTestCard(githubID), nil
+						return nil, gorm.ErrRecordNotFound
 					},
 				}
 			},
 			setupIdenticon: func() *identicon.MockIdenticonGenerator {
-				return &identicon.MockIdenticonGenerator{}
+				return &identicon.MockIdenticonGenerator{
+					GenerateFunc: func(githubID string) (domain.Color, domain.Blocks, error) {
+						return domain.Color("#000000"), domain.Blocks{}, nil
+					},
+				}
 			},
 			setupGitHub: func() *github.MockClient {
 				return &github.MockClient{
-					GetUserByIDFunc: func(ctx context.Context, id int64) (*github.UserInfo, error) {
+					GetAuthenticatedUserFunc: func(ctx context.Context) (*github.UserInfo, error) {
 						return nil, fmt.Errorf("github api error")
 					},
 				}
 			},
 			wantErr:    true,
-			wantErrMsg: "failed to get github user info",
+			wantErrMsg: "failed to get authenticated user",
 		},
 	}
 
