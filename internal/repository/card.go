@@ -80,3 +80,18 @@ func (r *cardRepository) Update(card *domain.Card) error {
 	dbCard := database.CardFromDomain(card)
 	return r.db.Model(&database.Card{}).Where("id = ?", dbCard.ID).Updates(dbCard).Error
 }
+
+// FindAllCardsInDB はデータベース内の全カードを取得する
+func (r *cardRepository) FindAllCardsInDB() ([]domain.Card, error) {
+	var dbCards []database.Card
+	if err := r.db.Find(&dbCards).Error; err != nil {
+		return nil, err
+	}
+
+	result := make([]domain.Card, 0, len(dbCards))
+	for _, dbCard := range dbCards {
+		result = append(result, *dbCard.ToDomain())
+	}
+
+	return result, nil
+}

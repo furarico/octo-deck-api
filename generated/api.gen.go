@@ -115,6 +115,9 @@ type ServerInterface interface {
 	// 自分のカード取得
 	// (GET /cards/me)
 	GetMyCard(c *gin.Context)
+	// データベース内のカードすべてを更新
+	// (PUT /cards/refresh)
+	RefreshAllCards(c *gin.Context)
 	// カードをデッキから削除
 	// (DELETE /cards/{githubId})
 	RemoveCardFromDeck(c *gin.Context, githubId string)
@@ -205,6 +208,21 @@ func (siw *ServerInterfaceWrapper) GetMyCard(c *gin.Context) {
 	}
 
 	siw.Handler.GetMyCard(c)
+}
+
+// RefreshAllCards operation middleware
+func (siw *ServerInterfaceWrapper) RefreshAllCards(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RefreshAllCards(c)
 }
 
 // RemoveCardFromDeck operation middleware
@@ -516,6 +534,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/cards", wrapper.GetCards)
 	router.POST(options.BaseURL+"/cards", wrapper.AddCardToDeck)
 	router.GET(options.BaseURL+"/cards/me", wrapper.GetMyCard)
+	router.PUT(options.BaseURL+"/cards/refresh", wrapper.RefreshAllCards)
 	router.DELETE(options.BaseURL+"/cards/:githubId", wrapper.RemoveCardFromDeck)
 	router.GET(options.BaseURL+"/cards/:githubId", wrapper.GetCard)
 	router.GET(options.BaseURL+"/communities", wrapper.GetCommunities)
@@ -579,6 +598,24 @@ type GetMyCard200JSONResponse struct {
 }
 
 func (response GetMyCard200JSONResponse) VisitGetMyCardResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type RefreshAllCardsRequestObject struct {
+}
+
+type RefreshAllCardsResponseObject interface {
+	VisitRefreshAllCardsResponse(w http.ResponseWriter) error
+}
+
+type RefreshAllCards200JSONResponse struct {
+	Card []Card `json:"card"`
+}
+
+func (response RefreshAllCards200JSONResponse) VisitRefreshAllCardsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
@@ -824,6 +861,9 @@ type StrictServerInterface interface {
 	// 自分のカード取得
 	// (GET /cards/me)
 	GetMyCard(ctx context.Context, request GetMyCardRequestObject) (GetMyCardResponseObject, error)
+	// データベース内のカードすべてを更新
+	// (PUT /cards/refresh)
+	RefreshAllCards(ctx context.Context, request RefreshAllCardsRequestObject) (RefreshAllCardsResponseObject, error)
 	// カードをデッキから削除
 	// (DELETE /cards/{githubId})
 	RemoveCardFromDeck(ctx context.Context, request RemoveCardFromDeckRequestObject) (RemoveCardFromDeckResponseObject, error)
@@ -950,6 +990,31 @@ func (sh *strictHandler) GetMyCard(ctx *gin.Context) {
 		ctx.Status(http.StatusInternalServerError)
 	} else if validResponse, ok := response.(GetMyCardResponseObject); ok {
 		if err := validResponse.VisitGetMyCardResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RefreshAllCards operation middleware
+func (sh *strictHandler) RefreshAllCards(ctx *gin.Context) {
+	var request RefreshAllCardsRequestObject
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.RefreshAllCards(ctx, request.(RefreshAllCardsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RefreshAllCards")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(RefreshAllCardsResponseObject); ok {
+		if err := validResponse.VisitRefreshAllCardsResponse(ctx.Writer); err != nil {
 			ctx.Error(err)
 		}
 	} else if response != nil {

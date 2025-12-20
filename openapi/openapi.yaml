@@ -63,6 +63,25 @@ paths:
                     $ref: '#/components/schemas/Card'
                 required:
                   - card
+  /cards/refresh:
+    put:
+      operationId: refreshAllCards
+      summary: データベース内のカードすべてを更新
+      parameters: []
+      responses:
+        '200':
+          description: The request has succeeded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  card:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Card'
+                required:
+                  - card
   /cards/{githubId}:
     get:
       operationId: getCard

@@ -6,6 +6,7 @@ type MockCardRepository struct {
 	FindAllFunc                  func(githubID string) ([]domain.Card, error)
 	FindByGitHubIDFunc           func(githubID string) (*domain.Card, error)
 	FindMyCardFunc               func(githubID string) (*domain.Card, error)
+	FindAllCardsInDBFunc         func() ([]domain.Card, error)
 	CreateFunc                   func(card *domain.Card) error
 	UpdateFunc                   func(card *domain.Card) error
 	AddToCollectedCardsFunc      func(collectorGithubID string, cardID domain.CardID) error
@@ -39,6 +40,14 @@ func (r *MockCardRepository) FindMyCard(githubID string) (*domain.Card, error) {
 		return r.FindMyCardFunc(githubID)
 	}
 	return nil, nil
+}
+
+// FindAllCardsInDB はデータベース内の全カードを取得する
+func (r *MockCardRepository) FindAllCardsInDB() ([]domain.Card, error) {
+	if r.FindAllCardsInDBFunc != nil {
+		return r.FindAllCardsInDBFunc()
+	}
+	return []domain.Card{}, nil
 }
 
 // Create は新しいカードを作成する
