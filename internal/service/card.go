@@ -39,15 +39,10 @@ func NewCardService(cardRepo CardRepository, identiconGenerator IdenticonGenerat
 }
 
 // GetAllCards は自分が集めたカードを全て取得する
-func (s *CardService) GetAllCards(ctx context.Context, githubID string, githubClient GitHubClient) ([]domain.Card, error) {
+func (s *CardService) GetAllCards(githubID string) ([]domain.Card, error) {
 	cards, err := s.cardRepo.FindAll(githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all cards: %w", err)
-	}
-
-	// バッチ処理でGitHub情報を一括取得
-	if err := EnrichCardsWithGitHubInfo(ctx, cards, githubClient); err != nil {
-		return nil, fmt.Errorf("failed to enrich cards with github info: %w", err)
 	}
 
 	return cards, nil

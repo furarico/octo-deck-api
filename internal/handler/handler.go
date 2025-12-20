@@ -24,7 +24,7 @@ const (
 
 // CardServiceInterface はハンドラーが必要とするサービスのインターフェース
 type CardServiceInterface interface {
-	GetAllCards(ctx context.Context, githubID string, githubClient service.GitHubClient) ([]domain.Card, error)
+	GetAllCards(githubID string) ([]domain.Card, error)
 	GetCardByGitHubID(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
 	GetMyCard(ctx context.Context, githubID string, githubClient service.GitHubClient) (*domain.Card, error)
 	GetOrCreateMyCard(ctx context.Context, githubID string, nodeID string, githubClient service.GitHubClient) (*domain.Card, error)
