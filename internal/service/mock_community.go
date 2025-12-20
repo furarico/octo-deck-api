@@ -9,38 +9,38 @@ import (
 
 // MockCommunityService はテスト用のモックサービス
 type MockCommunityService struct {
-	GetAllCommunitiesFunc               func(githubID string) ([]domain.Community, error)
-	GetCommunityByIDFunc                func(id string) (*domain.Community, error)
-	GetCommunityWithHighlightedCardFunc func(id string) (*domain.Community, *domain.HighlightedCard, error)
+	GetAllCommunitiesFunc               func(ctx context.Context, githubID string) ([]domain.Community, error)
+	GetCommunityByIDFunc                func(ctx context.Context, id string) (*domain.Community, error)
+	GetCommunityWithHighlightedCardFunc func(ctx context.Context, id string) (*domain.Community, *domain.HighlightedCard, error)
 	RefreshHighlightedCardFunc          func(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error)
-	GetCommunityCardsFunc               func(id string) ([]domain.Card, error)
-	CreateCommunityWithPeriodFunc       func(name string, startDateTime, endDateTime time.Time) (*domain.Community, error)
-	DeleteCommunityFunc                 func(id string) error
-	AddCardToCommunityFunc              func(communityID string, cardID string) error
-	RemoveCardFromCommunityFunc         func(communityID string, cardID string) error
+	GetCommunityCardsFunc               func(ctx context.Context, id string) ([]domain.Card, error)
+	CreateCommunityWithPeriodFunc       func(ctx context.Context, name string, startDateTime, endDateTime time.Time) (*domain.Community, error)
+	DeleteCommunityFunc                 func(ctx context.Context, id string) error
+	AddCardToCommunityFunc              func(ctx context.Context, communityID string, cardID string) error
+	RemoveCardFromCommunityFunc         func(ctx context.Context, communityID string, cardID string) error
 }
 
 func NewMockCommunityService() *MockCommunityService {
 	return &MockCommunityService{}
 }
 
-func (m *MockCommunityService) GetAllCommunities(githubID string) ([]domain.Community, error) {
+func (m *MockCommunityService) GetAllCommunities(ctx context.Context, githubID string) ([]domain.Community, error) {
 	if m.GetAllCommunitiesFunc != nil {
-		return m.GetAllCommunitiesFunc(githubID)
+		return m.GetAllCommunitiesFunc(ctx, githubID)
 	}
 	return []domain.Community{}, nil
 }
 
-func (m *MockCommunityService) GetCommunityByID(id string) (*domain.Community, error) {
+func (m *MockCommunityService) GetCommunityByID(ctx context.Context, id string) (*domain.Community, error) {
 	if m.GetCommunityByIDFunc != nil {
-		return m.GetCommunityByIDFunc(id)
+		return m.GetCommunityByIDFunc(ctx, id)
 	}
 	return nil, nil
 }
 
-func (m *MockCommunityService) GetCommunityWithHighlightedCard(id string) (*domain.Community, *domain.HighlightedCard, error) {
+func (m *MockCommunityService) GetCommunityWithHighlightedCard(ctx context.Context, id string) (*domain.Community, *domain.HighlightedCard, error) {
 	if m.GetCommunityWithHighlightedCardFunc != nil {
-		return m.GetCommunityWithHighlightedCardFunc(id)
+		return m.GetCommunityWithHighlightedCardFunc(ctx, id)
 	}
 	return nil, nil, nil
 }
@@ -52,37 +52,37 @@ func (m *MockCommunityService) RefreshHighlightedCard(ctx context.Context, id st
 	return nil, nil, nil
 }
 
-func (m *MockCommunityService) GetCommunityCards(id string) ([]domain.Card, error) {
+func (m *MockCommunityService) GetCommunityCards(ctx context.Context, id string) ([]domain.Card, error) {
 	if m.GetCommunityCardsFunc != nil {
-		return m.GetCommunityCardsFunc(id)
+		return m.GetCommunityCardsFunc(ctx, id)
 	}
 	return []domain.Card{}, nil
 }
 
-func (m *MockCommunityService) CreateCommunityWithPeriod(name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
+func (m *MockCommunityService) CreateCommunityWithPeriod(ctx context.Context, name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
 	if m.CreateCommunityWithPeriodFunc != nil {
-		return m.CreateCommunityWithPeriodFunc(name, startDateTime, endDateTime)
+		return m.CreateCommunityWithPeriodFunc(ctx, name, startDateTime, endDateTime)
 	}
 	return nil, nil
 }
 
-func (m *MockCommunityService) DeleteCommunity(id string) error {
+func (m *MockCommunityService) DeleteCommunity(ctx context.Context, id string) error {
 	if m.DeleteCommunityFunc != nil {
-		return m.DeleteCommunityFunc(id)
+		return m.DeleteCommunityFunc(ctx, id)
 	}
 	return nil
 }
 
-func (m *MockCommunityService) AddCardToCommunity(communityID string, cardID string) error {
+func (m *MockCommunityService) AddCardToCommunity(ctx context.Context, communityID string, cardID string) error {
 	if m.AddCardToCommunityFunc != nil {
-		return m.AddCardToCommunityFunc(communityID, cardID)
+		return m.AddCardToCommunityFunc(ctx, communityID, cardID)
 	}
 	return nil
 }
 
-func (m *MockCommunityService) RemoveCardFromCommunity(communityID string, cardID string) error {
+func (m *MockCommunityService) RemoveCardFromCommunity(ctx context.Context, communityID string, cardID string) error {
 	if m.RemoveCardFromCommunityFunc != nil {
-		return m.RemoveCardFromCommunityFunc(communityID, cardID)
+		return m.RemoveCardFromCommunityFunc(ctx, communityID, cardID)
 	}
 	return nil
 }

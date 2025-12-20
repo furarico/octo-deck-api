@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -26,7 +27,7 @@ func TestGetCards(t *testing.T) {
 			name: "正常にカード一覧を取得できる",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetAllCardsFunc: func(githubID string) ([]domain.Card, error) {
+					GetAllCardsFunc: func(ctx context.Context, githubID string) ([]domain.Card, error) {
 						return []domain.Card{
 							{
 								ID:       domain.NewCardID(),
@@ -79,7 +80,7 @@ func TestGetCards(t *testing.T) {
 			name: "空の結果を正常に返せる",
 			setupMock: func() *service.MockCardService {
 				return &service.MockCardService{
-					GetAllCardsFunc: func(githubID string) ([]domain.Card, error) {
+					GetAllCardsFunc: func(ctx context.Context, githubID string) ([]domain.Card, error) {
 						return []domain.Card{}, nil
 					},
 				}

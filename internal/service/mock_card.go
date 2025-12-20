@@ -8,7 +8,7 @@ import (
 
 // MockCardService はテスト用のモックサービス
 type MockCardService struct {
-	GetAllCardsFunc        func(githubID string) ([]domain.Card, error)
+	GetAllCardsFunc        func(ctx context.Context, githubID string) ([]domain.Card, error)
 	GetCardByGitHubIDFunc  func(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error)
 	GetMyCardFunc          func(ctx context.Context, githubID string, githubClient GitHubClient) (*domain.Card, error)
 	GetOrCreateMyCardFunc  func(ctx context.Context, githubID string, nodeID string, githubClient GitHubClient) (*domain.Card, error)
@@ -21,9 +21,9 @@ func NewMockCardService() *MockCardService {
 	return &MockCardService{}
 }
 
-func (m *MockCardService) GetAllCards(githubID string) ([]domain.Card, error) {
+func (m *MockCardService) GetAllCards(ctx context.Context, githubID string) ([]domain.Card, error) {
 	if m.GetAllCardsFunc != nil {
-		return m.GetAllCardsFunc(githubID)
+		return m.GetAllCardsFunc(ctx, githubID)
 	}
 	return []domain.Card{}, nil
 }

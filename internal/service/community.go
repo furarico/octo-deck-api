@@ -11,15 +11,15 @@ import (
 
 // CommunityRepository はServiceが必要とするRepositoryのインターフェース
 type CommunityRepository interface {
-	FindAll(githubID string) ([]domain.Community, error)
-	FindByID(id string) (*domain.Community, error)
-	FindByIDWithHighlightedCard(id string) (*domain.Community, error)
-	FindCards(id string) ([]domain.Card, error)
-	Create(community *domain.Community) error
-	Delete(id string) error
-	AddCard(communityID string, cardID string) error
-	RemoveCard(communityID string, cardID string) error
-	UpdateHighlightedCard(communityID string, highlightedCard *domain.HighlightedCard) error
+	FindAll(ctx context.Context, githubID string) ([]domain.Community, error)
+	FindByID(ctx context.Context, id string) (*domain.Community, error)
+	FindByIDWithHighlightedCard(ctx context.Context, id string) (*domain.Community, error)
+	FindCards(ctx context.Context, id string) ([]domain.Card, error)
+	Create(ctx context.Context, community *domain.Community) error
+	Delete(ctx context.Context, id string) error
+	AddCard(ctx context.Context, communityID string, cardID string) error
+	RemoveCard(ctx context.Context, communityID string, cardID string) error
+	UpdateHighlightedCard(ctx context.Context, communityID string, highlightedCard *domain.HighlightedCard) error
 }
 
 type CommunityService struct {
@@ -35,8 +35,8 @@ func NewCommunityService(communityRepo CommunityRepository, cardRepo CardReposit
 }
 
 // GetAllCommunities はすべてのコミュニティを取得する
-func (s *CommunityService) GetAllCommunities(githubID string) ([]domain.Community, error) {
-	communities, err := s.communityRepo.FindAll(githubID)
+func (s *CommunityService) GetAllCommunities(ctx context.Context, githubID string) ([]domain.Community, error) {
+	communities, err := s.communityRepo.FindAll(ctx, githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all communities: %w", err)
 	}
@@ -45,8 +45,8 @@ func (s *CommunityService) GetAllCommunities(githubID string) ([]domain.Communit
 }
 
 // GetCommunityByID は指定されたコミュニティIDの情報を取得する
-func (s *CommunityService) GetCommunityByID(id string) (*domain.Community, error) {
-	community, err := s.communityRepo.FindByID(id)
+func (s *CommunityService) GetCommunityByID(ctx context.Context, id string) (*domain.Community, error) {
+	community, err := s.communityRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get community by id: %w", err)
 	}
@@ -59,9 +59,9 @@ func (s *CommunityService) GetCommunityByID(id string) (*domain.Community, error
 }
 
 // GetCommunityWithHighlightedCard はコミュニティとHighlightedCardをデータベースから取得する
-func (s *CommunityService) GetCommunityWithHighlightedCard(id string) (*domain.Community, *domain.HighlightedCard, error) {
+func (s *CommunityService) GetCommunityWithHighlightedCard(ctx context.Context, id string) (*domain.Community, *domain.HighlightedCard, error) {
 	// コミュニティをHighlightedCard付きで取得
-	community, err := s.communityRepo.FindByIDWithHighlightedCard(id)
+	community, err := s.communityRepo.FindByIDWithHighlightedCard(ctx, id)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get community by id: %w", err)
 	}
@@ -75,7 +75,7 @@ func (s *CommunityService) GetCommunityWithHighlightedCard(id string) (*domain.C
 // RefreshHighlightedCard はGitHub APIを呼び出してHighlightedCardを再計算し、データベースに保存する
 func (s *CommunityService) RefreshHighlightedCard(ctx context.Context, id string, githubClient GitHubClient) (*domain.Community, *domain.HighlightedCard, error) {
 	// コミュニティを取得
-	community, err := s.communityRepo.FindByID(id)
+	community, err := s.communityRepo.FindByID(ctx, id)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get community by id: %w", err)
 	}
@@ -84,7 +84,7 @@ func (s *CommunityService) RefreshHighlightedCard(ctx context.Context, id string
 	}
 
 	// コミュニティのカード一覧を取得
-	cards, err := s.communityRepo.FindCards(id)
+	cards, err := s.communityRepo.FindCards(ctx, id)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get community cards: %w", err)
 	}
@@ -92,7 +92,7 @@ func (s *CommunityService) RefreshHighlightedCard(ctx context.Context, id string
 	// カードがない場合は空のHighlightedCardを保存して返す
 	if len(cards) == 0 {
 		emptyHighlightedCard := &domain.HighlightedCard{}
-		if err := s.communityRepo.UpdateHighlightedCard(id, emptyHighlightedCard); err != nil {
+		if err := s.communityRepo.UpdateHighlightedCard(ctx, id, emptyHighlightedCard); err != nil {
 			return nil, nil, fmt.Errorf("failed to update highlighted card: %w", err)
 		}
 		return community, emptyHighlightedCard, nil
@@ -111,7 +111,7 @@ func (s *CommunityService) RefreshHighlightedCard(ctx context.Context, id string
 	// NodeIDがない場合は空のHighlightedCardを保存して返す
 	if len(nodeIDs) == 0 {
 		emptyHighlightedCard := &domain.HighlightedCard{}
-		if err := s.communityRepo.UpdateHighlightedCard(id, emptyHighlightedCard); err != nil {
+		if err := s.communityRepo.UpdateHighlightedCard(ctx, id, emptyHighlightedCard); err != nil {
 			return nil, nil, fmt.Errorf("failed to update highlighted card: %w", err)
 		}
 		return community, emptyHighlightedCard, nil
@@ -126,7 +126,7 @@ func (s *CommunityService) RefreshHighlightedCard(ctx context.Context, id string
 	// データがない場合は空のHighlightedCardを保存して返す
 	if len(usersFullInfo) == 0 {
 		emptyHighlightedCard := &domain.HighlightedCard{}
-		if err := s.communityRepo.UpdateHighlightedCard(id, emptyHighlightedCard); err != nil {
+		if err := s.communityRepo.UpdateHighlightedCard(ctx, id, emptyHighlightedCard); err != nil {
 			return nil, nil, fmt.Errorf("failed to update highlighted card: %w", err)
 		}
 		return community, emptyHighlightedCard, nil
@@ -146,19 +146,19 @@ func (s *CommunityService) RefreshHighlightedCard(ctx context.Context, id string
 
 	for _, card := range cardsToUpdate {
 		if card.GithubID != "" {
-			if err := s.cardRepo.Update(card); err != nil {
+			if err := s.cardRepo.Update(ctx, card); err != nil {
 				return nil, nil, fmt.Errorf("failed to update card: %w", err)
 			}
 		}
 	}
 
 	// HighlightedCardをデータベースに保存
-	if err := s.communityRepo.UpdateHighlightedCard(id, highlightedCard); err != nil {
+	if err := s.communityRepo.UpdateHighlightedCard(ctx, id, highlightedCard); err != nil {
 		return nil, nil, fmt.Errorf("failed to update highlighted card: %w", err)
 	}
 
 	// 更新後のコミュニティを取得して返す
-	updatedCommunity, err := s.communityRepo.FindByIDWithHighlightedCard(id)
+	updatedCommunity, err := s.communityRepo.FindByIDWithHighlightedCard(ctx, id)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get updated community: %w", err)
 	}
@@ -248,8 +248,8 @@ func calculateHighlightedCardFromFullInfo(usersFullInfo []github.UserFullInfo, c
 }
 
 // GetCommunityCards は指定したコミュニティIDのカード一覧をデータベースから取得する
-func (s *CommunityService) GetCommunityCards(id string) ([]domain.Card, error) {
-	cards, err := s.communityRepo.FindCards(id)
+func (s *CommunityService) GetCommunityCards(ctx context.Context, id string) ([]domain.Card, error) {
+	cards, err := s.communityRepo.FindCards(ctx, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get community cards: %w", err)
 	}
@@ -258,10 +258,10 @@ func (s *CommunityService) GetCommunityCards(id string) ([]domain.Card, error) {
 }
 
 // CreateCommunityWithPeriod は集計期間を指定してコミュニティを作成する
-func (s *CommunityService) CreateCommunityWithPeriod(name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
+func (s *CommunityService) CreateCommunityWithPeriod(ctx context.Context, name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
 	community := domain.NewCommunity(name, startDateTime, endDateTime, domain.HighlightedCard{})
 
-	if err := s.communityRepo.Create(community); err != nil {
+	if err := s.communityRepo.Create(ctx, community); err != nil {
 		return nil, fmt.Errorf("failed to create community: %w", err)
 	}
 
@@ -269,8 +269,8 @@ func (s *CommunityService) CreateCommunityWithPeriod(name string, startDateTime,
 }
 
 // DeleteCommunity はコミュニティを削除する
-func (s *CommunityService) DeleteCommunity(id string) error {
-	if err := s.communityRepo.Delete(id); err != nil {
+func (s *CommunityService) DeleteCommunity(ctx context.Context, id string) error {
+	if err := s.communityRepo.Delete(ctx, id); err != nil {
 		return fmt.Errorf("failed to delete community: %w", err)
 	}
 
@@ -278,8 +278,8 @@ func (s *CommunityService) DeleteCommunity(id string) error {
 }
 
 // AddCardToCommunity はコミュニティにカードを追加する
-func (s *CommunityService) AddCardToCommunity(communityID string, cardID string) error {
-	if err := s.communityRepo.AddCard(communityID, cardID); err != nil {
+func (s *CommunityService) AddCardToCommunity(ctx context.Context, communityID string, cardID string) error {
+	if err := s.communityRepo.AddCard(ctx, communityID, cardID); err != nil {
 		return fmt.Errorf("failed to add card to community: %w", err)
 	}
 
@@ -287,8 +287,8 @@ func (s *CommunityService) AddCardToCommunity(communityID string, cardID string)
 }
 
 // RemoveCardFromCommunity はコミュニティからカードを削除する
-func (s *CommunityService) RemoveCardFromCommunity(communityID string, cardID string) error {
-	if err := s.communityRepo.RemoveCard(communityID, cardID); err != nil {
+func (s *CommunityService) RemoveCardFromCommunity(ctx context.Context, communityID string, cardID string) error {
+	if err := s.communityRepo.RemoveCard(ctx, communityID, cardID); err != nil {
 		return fmt.Errorf("failed to remove card from community: %w", err)
 	}
 

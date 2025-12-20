@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -58,9 +59,10 @@ func TestCardRepository_Create(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
+			ctx := context.Background()
 
 			repo := NewCardRepository(db)
-			err := repo.Create(tt.card)
+			err := repo.Create(ctx, tt.card)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
@@ -126,9 +128,10 @@ func TestCardRepository_FindByGitHubID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCardRepository(db)
-			card, err := repo.FindByGitHubID(tt.githubID)
+			card, err := repo.FindByGitHubID(ctx, tt.githubID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindByGitHubID() error = %v, wantErr %v", err, tt.wantErr)
@@ -178,9 +181,10 @@ func TestCardRepository_FindMyCard(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCardRepository(db)
-			card, err := repo.FindMyCard(tt.githubID)
+			card, err := repo.FindMyCard(ctx, tt.githubID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindMyCard() error = %v, wantErr %v", err, tt.wantErr)
@@ -283,9 +287,10 @@ func TestCardRepository_FindAll(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			collectorID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCardRepository(db)
-			cards, err := repo.FindAll(collectorID)
+			cards, err := repo.FindAll(ctx, collectorID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindAll() error = %v, wantErr %v", err, tt.wantErr)
@@ -332,9 +337,10 @@ func TestCardRepository_Update(t *testing.T) {
 			CleanupTestData(t, db)
 			card := tt.setup(db)
 			tt.updateFunc(card)
+			ctx := context.Background()
 
 			repo := NewCardRepository(db)
-			err := repo.Update(card)
+			err := repo.Update(ctx, card)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
@@ -385,9 +391,10 @@ func TestCardRepository_AddToCollectedCards(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			collectorID, cardID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCardRepository(db)
-			err := repo.AddToCollectedCards(collectorID, cardID)
+			err := repo.AddToCollectedCards(ctx, collectorID, cardID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("AddToCollectedCards() error = %v, wantErr %v", err, tt.wantErr)
@@ -449,9 +456,10 @@ func TestCardRepository_RemoveFromCollectedCards(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			collectorID, cardID := tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCardRepository(db)
-			err := repo.RemoveFromCollectedCards(collectorID, cardID)
+			err := repo.RemoveFromCollectedCards(ctx, collectorID, cardID)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RemoveFromCollectedCards() error = %v, wantErr %v", err, tt.wantErr)
@@ -511,9 +519,10 @@ func TestCardRepository_FindAllCardsInDB(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			CleanupTestData(t, db)
 			tt.setup(db)
+			ctx := context.Background()
 
 			repo := NewCardRepository(db)
-			cards, err := repo.FindAllCardsInDB()
+			cards, err := repo.FindAllCardsInDB(ctx)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindAllCardsInDB() error = %v, wantErr %v", err, tt.wantErr)

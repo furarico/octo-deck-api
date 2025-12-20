@@ -44,7 +44,7 @@ func TestAddCardToCommunity(t *testing.T) {
 			},
 			setupCommunityMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					AddCardToCommunityFunc: func(communityID string, cardID string) error {
+					AddCardToCommunityFunc: func(ctx context.Context, communityID string, cardID string) error {
 						return nil
 					},
 				}
@@ -97,7 +97,7 @@ func TestAddCardToCommunity(t *testing.T) {
 			},
 			setupCommunityMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					AddCardToCommunityFunc: func(communityID string, cardID string) error {
+					AddCardToCommunityFunc: func(ctx context.Context, communityID string, cardID string) error {
 						return fmt.Errorf("database error")
 					},
 				}

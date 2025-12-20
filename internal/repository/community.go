@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/furarico/octo-deck-api/internal/database"
@@ -18,9 +19,9 @@ func NewCommunityRepository(db *gorm.DB) *communityRepository {
 }
 
 // FindAll はすべてのコミュニティを取得する
-func (r *communityRepository) FindAll(githubID string) ([]domain.Community, error) {
+func (r *communityRepository) FindAll(ctx context.Context, githubID string) ([]domain.Community, error) {
 	var communities []database.Community
-	if err := r.db.
+	if err := r.db.WithContext(ctx).
 		Model(&database.Community{}).
 		Joins("JOIN community_cards cc ON cc.community_id = communities.id").
 		Joins("JOIN cards c ON c.id = cc.card_id AND c.github_id = ?", githubID).
@@ -38,9 +39,9 @@ func (r *communityRepository) FindAll(githubID string) ([]domain.Community, erro
 }
 
 // FindByID は指定されたコミュニティIDの情報を取得する
-func (r *communityRepository) FindByID(id string) (*domain.Community, error) {
+func (r *communityRepository) FindByID(ctx context.Context, id string) (*domain.Community, error) {
 	var community database.Community
-	if err := r.db.First(&community, "id = ?", id).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&community, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
 
@@ -48,9 +49,9 @@ func (r *communityRepository) FindByID(id string) (*domain.Community, error) {
 }
 
 // FindByIDWithHighlightedCard は指定されたコミュニティIDの情報をHighlightedCard付きで取得する
-func (r *communityRepository) FindByIDWithHighlightedCard(id string) (*domain.Community, error) {
+func (r *communityRepository) FindByIDWithHighlightedCard(ctx context.Context, id string) (*domain.Community, error) {
 	var community database.Community
-	if err := r.db.
+	if err := r.db.WithContext(ctx).
 		Preload("BestContributorCard").
 		Preload("BestCommitterCard").
 		Preload("BestIssuerCard").
@@ -64,7 +65,7 @@ func (r *communityRepository) FindByIDWithHighlightedCard(id string) (*domain.Co
 }
 
 // UpdateHighlightedCard はコミュニティのHighlightedCardを更新する
-func (r *communityRepository) UpdateHighlightedCard(communityID string, highlightedCard *domain.HighlightedCard) error {
+func (r *communityRepository) UpdateHighlightedCard(ctx context.Context, communityID string, highlightedCard *domain.HighlightedCard) error {
 	communityUUID, err := parseUUID(communityID)
 	if err != nil {
 		return fmt.Errorf("invalid community id: %w", err)
@@ -108,13 +109,13 @@ func (r *communityRepository) UpdateHighlightedCard(communityID string, highligh
 		updates["best_reviewer_card_id"] = nil
 	}
 
-	return r.db.Model(&database.Community{}).Where("id = ?", communityUUID).Updates(updates).Error
+	return r.db.WithContext(ctx).Model(&database.Community{}).Where("id = ?", communityUUID).Updates(updates).Error
 }
 
 // FindCards は指定したコミュニティIDのカード一覧を取得する
-func (r *communityRepository) FindCards(id string) ([]domain.Card, error) {
+func (r *communityRepository) FindCards(ctx context.Context, id string) ([]domain.Card, error) {
 	var cards []database.Card
-	if err := r.db.
+	if err := r.db.WithContext(ctx).
 		Joins("JOIN community_cards cc ON cc.card_id = cards.id").
 		Where("cc.community_id = ?", id).
 		Find(&cards).Error; err != nil {
@@ -130,7 +131,7 @@ func (r *communityRepository) FindCards(id string) ([]domain.Card, error) {
 }
 
 // Create はコミュニティを作成する
-func (r *communityRepository) Create(community *domain.Community) error {
+func (r *communityRepository) Create(ctx context.Context, community *domain.Community) error {
 	dbCommunity := &database.Community{
 		ID:        uuid.UUID(community.ID),
 		Name:      community.Name,
@@ -138,16 +139,16 @@ func (r *communityRepository) Create(community *domain.Community) error {
 		EndedAt:   community.EndedAt,
 	}
 
-	return r.db.Create(dbCommunity).Error
+	return r.db.WithContext(ctx).Create(dbCommunity).Error
 }
 
 // Delete はコミュニティを削除する
-func (r *communityRepository) Delete(id string) error {
-	return r.db.Delete(&database.Community{}, "id = ?", id).Error
+func (r *communityRepository) Delete(ctx context.Context, id string) error {
+	return r.db.WithContext(ctx).Delete(&database.Community{}, "id = ?", id).Error
 }
 
 // AddCard はコミュニティにカードを追加する
-func (r *communityRepository) AddCard(communityID string, cardID string) error {
+func (r *communityRepository) AddCard(ctx context.Context, communityID string, cardID string) error {
 	communityUUID, err := parseUUID(communityID)
 	if err != nil {
 		return fmt.Errorf("invalid community id: %w", err)
@@ -162,11 +163,11 @@ func (r *communityRepository) AddCard(communityID string, cardID string) error {
 		CardID:      cardUUID,
 	}
 
-	return r.db.Create(communityCard).Error
+	return r.db.WithContext(ctx).Create(communityCard).Error
 }
 
 // RemoveCard はコミュニティからカードを削除する
-func (r *communityRepository) RemoveCard(communityID string, cardID string) error {
+func (r *communityRepository) RemoveCard(ctx context.Context, communityID string, cardID string) error {
 	communityUUID, err := parseUUID(communityID)
 	if err != nil {
 		return fmt.Errorf("invalid community id: %w", err)
@@ -176,7 +177,7 @@ func (r *communityRepository) RemoveCard(communityID string, cardID string) erro
 		return fmt.Errorf("invalid card id: %w", err)
 	}
 
-	return r.db.
+	return r.db.WithContext(ctx).
 		Where("community_id = ? AND card_id = ?", communityUUID, cardUUID).
 		Delete(&database.CommunityCard{}).Error
 }

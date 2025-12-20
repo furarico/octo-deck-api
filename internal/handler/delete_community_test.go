@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -27,13 +28,13 @@ func TestDeleteCommunity(t *testing.T) {
 			name: "正常にコミュニティを削除できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityByIDFunc: func(id string) (*domain.Community, error) {
+					GetCommunityByIDFunc: func(ctx context.Context, id string) (*domain.Community, error) {
 						return &domain.Community{
 							ID:   domain.NewCommunityID(),
 							Name: "Test Community",
 						}, nil
 					},
-					DeleteCommunityFunc: func(id string) error {
+					DeleteCommunityFunc: func(ctx context.Context, id string) error {
 						return nil
 					},
 				}
@@ -56,7 +57,7 @@ func TestDeleteCommunity(t *testing.T) {
 			name: "コミュニティが見つからない場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityByIDFunc: func(id string) (*domain.Community, error) {
+					GetCommunityByIDFunc: func(ctx context.Context, id string) (*domain.Community, error) {
 						return nil, fmt.Errorf("community not found: id=%s", id)
 					},
 				}
@@ -68,13 +69,13 @@ func TestDeleteCommunity(t *testing.T) {
 			name: "削除処理でエラーが発生した場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityByIDFunc: func(id string) (*domain.Community, error) {
+					GetCommunityByIDFunc: func(ctx context.Context, id string) (*domain.Community, error) {
 						return &domain.Community{
 							ID:   domain.NewCommunityID(),
 							Name: "Test Community",
 						}, nil
 					},
-					DeleteCommunityFunc: func(id string) error {
+					DeleteCommunityFunc: func(ctx context.Context, id string) error {
 						return fmt.Errorf("database error")
 					},
 				}

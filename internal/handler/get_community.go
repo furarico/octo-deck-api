@@ -9,8 +9,8 @@ import (
 
 // 指定したコミュニティ取得
 // (GET /communities/{id})
-func (h *Handler) GetCommunity(_ context.Context, request api.GetCommunityRequestObject) (api.GetCommunityResponseObject, error) {
-	community, highlightedCard, err := h.communityService.GetCommunityWithHighlightedCard(request.Id)
+func (h *Handler) GetCommunity(ctx context.Context, request api.GetCommunityRequestObject) (api.GetCommunityResponseObject, error) {
+	community, highlightedCard, err := h.communityService.GetCommunityWithHighlightedCard(ctx, request.Id)
 	if err != nil {
 		return nil, fmt.Errorf("community not found: %w", err)
 	}

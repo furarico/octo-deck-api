@@ -15,7 +15,7 @@ func (h *Handler) GetCommunities(ctx context.Context, request api.GetCommunities
 		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
-	communities, err := h.communityService.GetAllCommunities(githubID)
+	communities, err := h.communityService.GetAllCommunities(ctx, githubID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get communities: %w", err)
 	}

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -34,7 +35,7 @@ func TestCreateCommunity(t *testing.T) {
 			name: "正常にコミュニティを作成できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					CreateCommunityWithPeriodFunc: func(name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
+					CreateCommunityWithPeriodFunc: func(ctx context.Context, name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
 						return &domain.Community{
 							ID:        domain.NewCommunityID(),
 							Name:      name,
@@ -73,7 +74,7 @@ func TestCreateCommunity(t *testing.T) {
 			name: "サービスでエラーが発生した場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					CreateCommunityWithPeriodFunc: func(name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
+					CreateCommunityWithPeriodFunc: func(ctx context.Context, name string, startDateTime, endDateTime time.Time) (*domain.Community, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
