@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	api "github.com/furarico/octo-deck-api/generated"
 	"github.com/furarico/octo-deck-api/internal/domain"
 	"github.com/furarico/octo-deck-api/internal/service"
-	"github.com/furarico/octo-deck-api/internal/github"
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,7 +27,7 @@ func TestGetCommunityCards(t *testing.T) {
 			name: "正常にコミュニティのカード一覧を取得できる",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityCardsFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) ([]domain.Card, error) {
+					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
 						return []domain.Card{
 							{
 								ID:       domain.NewCardID(),
@@ -78,7 +76,7 @@ func TestGetCommunityCards(t *testing.T) {
 			name: "カードが空の場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityCardsFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) ([]domain.Card, error) {
+					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
 						return []domain.Card{}, nil
 					},
 				}
@@ -101,7 +99,7 @@ func TestGetCommunityCards(t *testing.T) {
 			name: "サービスでエラーが発生した場合",
 			setupMock: func() *service.MockCommunityService {
 				return &service.MockCommunityService{
-					GetCommunityCardsFunc: func(ctx context.Context, id string, githubClient service.GitHubClient) ([]domain.Card, error) {
+					GetCommunityCardsFunc: func(id string) ([]domain.Card, error) {
 						return nil, fmt.Errorf("database error")
 					},
 				}
@@ -117,13 +115,6 @@ func TestGetCommunityCards(t *testing.T) {
 			mockService := tt.setupMock()
 			communityHandler := NewCommunityHandler(mockService)
 			router := gin.Default()
-			// GitHubクライアントをコンテキストに詰めるテスト用ミドルウェア
-			router.Use(func(c *gin.Context) {
-				mockGitHub := &github.MockClient{}
-				ctx := context.WithValue(c.Request.Context(), GitHubClientKey, service.GitHubClient(mockGitHub))
-				c.Request = c.Request.WithContext(ctx)
-				c.Next()
-			})
 			strictHandler := api.NewStrictHandler(communityHandler, nil)
 			api.RegisterHandlers(router, strictHandler)
 
