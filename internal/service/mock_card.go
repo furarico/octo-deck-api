@@ -14,6 +14,7 @@ type MockCardService struct {
 	GetOrCreateMyCardFunc  func(ctx context.Context, githubID string, nodeID string, githubClient GitHubClient) (*domain.Card, error)
 	AddCardToDeckFunc      func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient GitHubClient) (*domain.Card, error)
 	RemoveCardFromDeckFunc func(ctx context.Context, collectorGithubID string, targetGithubID string, githubClient GitHubClient) (*domain.Card, error)
+	RefreshAllCardsFunc    func(ctx context.Context, githubClient GitHubClient) ([]domain.Card, error)
 }
 
 func NewMockCardService() *MockCardService {
@@ -60,4 +61,11 @@ func (m *MockCardService) RemoveCardFromDeck(ctx context.Context, collectorGithu
 		return m.RemoveCardFromDeckFunc(ctx, collectorGithubID, targetGithubID, githubClient)
 	}
 	return nil, nil
+}
+
+func (m *MockCardService) RefreshAllCards(ctx context.Context, githubClient GitHubClient) ([]domain.Card, error) {
+	if m.RefreshAllCardsFunc != nil {
+		return m.RefreshAllCardsFunc(ctx, githubClient)
+	}
+	return []domain.Card{}, nil
 }
