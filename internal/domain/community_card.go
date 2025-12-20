@@ -13,17 +13,19 @@ func NewCommunityCardID() CommunityCardID {
 }
 
 type CommunityCard struct {
-	ID          CommunityCardID
-	CommunityID CommunityID
-	CardID      CardID
-	JoinedAt    time.Time
+	ID                CommunityCardID
+	CommunityID       CommunityID
+	CardID            CardID
+	JoinedAt          time.Time
+	TotalContribution int
 }
 
 func NewCommunityCard(communityID CommunityID, cardID CardID) *CommunityCard {
 	return &CommunityCard{
-		ID:          NewCommunityCardID(),
-		CommunityID: communityID,
-		CardID:      cardID,
-		JoinedAt:    time.Now(),
+		ID:                NewCommunityCardID(),
+		CommunityID:       communityID,
+		CardID:            cardID,
+		JoinedAt:          time.Now(),
+		TotalContribution: 0,
 	}
 }

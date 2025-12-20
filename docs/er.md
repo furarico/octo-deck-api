@@ -41,6 +41,7 @@ erDiagram
         string community_id FK
         string card_id FK
         datetime joined_at
+        int total_contribution
     }
 
     CARDS ||--o{ COLLECTED_CARDS : is_collected_in
