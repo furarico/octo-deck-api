@@ -1204,3 +1204,200 @@ func TestEnrichCardsWithGitHubInfo(t *testing.T) {
 		})
 	}
 }
+
+// RefreshAllCards はデータベース内の全カードをGitHub APIから最新情報で更新する
+func TestRefreshAllCards(t *testing.T) {
+	tests := []struct {
+		name        string
+		setupRepo   func() *repository.MockCardRepository
+		setupGitHub func() *github.MockClient
+		wantErr     bool
+		wantErrMsg  string
+		wantCount   int
+		validate    func(t *testing.T, cards []domain.Card)
+	}{
+		{
+			name: "正常に全カードを更新できる",
+			setupRepo: func() *repository.MockCardRepository {
+				return &repository.MockCardRepository{
+					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+						return []domain.Card{
+							*createTestCard("12345"),
+							*createTestCard("67890"),
+						}, nil
+					},
+					UpdateFunc: func(card *domain.Card) error {
+						return nil
+					},
+				}
+			},
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
+					GetUsersByIDsFunc: func(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error) {
+						result := make(map[int64]*github.UserInfo)
+						for _, id := range ids {
+							result[id] = &github.UserInfo{
+								ID:        id,
+								Login:     fmt.Sprintf("user%d", id),
+								Name:      fmt.Sprintf("User %d", id),
+								AvatarURL: fmt.Sprintf("https://example.com/user%d.png", id),
+							}
+						}
+						return result, nil
+					},
+					GetMostUsedLanguagesFunc: func(ctx context.Context, logins []string) (map[string]github.LanguageInfo, error) {
+						result := make(map[string]github.LanguageInfo)
+						for _, login := range logins {
+							result[login] = github.LanguageInfo{
+								Name:  "Go",
+								Color: "#00ADD8",
+							}
+						}
+						return result, nil
+					},
+				}
+			},
+			wantErr:   false,
+			wantCount: 2,
+			validate: func(t *testing.T, cards []domain.Card) {
+				if len(cards) != 2 {
+					t.Errorf("カード数が期待と異なります: 期待=2, 実際=%d", len(cards))
+				}
+				if cards[0].UserName == "" {
+					t.Errorf("cards[0].UserNameが空です")
+				}
+				if cards[1].UserName == "" {
+					t.Errorf("cards[1].UserNameが空です")
+				}
+			},
+		},
+		{
+			name: "カードが存在しない場合は空のスライスを返す",
+			setupRepo: func() *repository.MockCardRepository {
+				return &repository.MockCardRepository{
+					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+						return []domain.Card{}, nil
+					},
+				}
+			},
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{}
+			},
+			wantErr:   false,
+			wantCount: 0,
+			validate: func(t *testing.T, cards []domain.Card) {
+				if len(cards) != 0 {
+					t.Errorf("カード数が期待と異なります: 期待=0, 実際=%d", len(cards))
+				}
+			},
+		},
+		{
+			name: "Repositoryエラーが発生した場合",
+			setupRepo: func() *repository.MockCardRepository {
+				return &repository.MockCardRepository{
+					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+						return nil, fmt.Errorf("database error")
+					},
+				}
+			},
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{}
+			},
+			wantErr:    true,
+			wantErrMsg: "failed to get all cards from db",
+		},
+		{
+			name: "GitHub APIエラーが発生した場合",
+			setupRepo: func() *repository.MockCardRepository {
+				return &repository.MockCardRepository{
+					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+						return []domain.Card{
+							*createTestCard("12345"),
+						}, nil
+					},
+				}
+			},
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
+					GetUsersByIDsFunc: func(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error) {
+						return nil, fmt.Errorf("github api error")
+					},
+				}
+			},
+			wantErr:    true,
+			wantErrMsg: "failed to enrich cards with github info",
+		},
+		{
+			name: "カード更新時のRepositoryエラー",
+			setupRepo: func() *repository.MockCardRepository {
+				return &repository.MockCardRepository{
+					FindAllCardsInDBFunc: func() ([]domain.Card, error) {
+						return []domain.Card{
+							*createTestCard("12345"),
+						}, nil
+					},
+					UpdateFunc: func(card *domain.Card) error {
+						return fmt.Errorf("update error")
+					},
+				}
+			},
+			setupGitHub: func() *github.MockClient {
+				return &github.MockClient{
+					GetUsersByIDsFunc: func(ctx context.Context, ids []int64) (map[int64]*github.UserInfo, error) {
+						return map[int64]*github.UserInfo{
+							12345: {
+								ID:        12345,
+								Login:     "testuser",
+								Name:      "Test User",
+								AvatarURL: "https://example.com/avatar.png",
+							},
+						}, nil
+					},
+					GetMostUsedLanguagesFunc: func(ctx context.Context, logins []string) (map[string]github.LanguageInfo, error) {
+						return map[string]github.LanguageInfo{
+							"testuser": {
+								Name:  "Go",
+								Color: "#00ADD8",
+							},
+						}, nil
+					},
+				}
+			},
+			wantErr:    true,
+			wantErrMsg: "failed to update card",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			cardRepo := tt.setupRepo()
+			identiconGen := &identicon.MockIdenticonGenerator{}
+			githubClient := tt.setupGitHub()
+
+			service := NewCardService(cardRepo, identiconGen)
+			cards, err := service.RefreshAllCards(ctx, githubClient)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("エラーが期待されましたが、エラーが発生しませんでした")
+					return
+				}
+				if tt.wantErrMsg != "" && !contains(err.Error(), tt.wantErrMsg) {
+					t.Errorf("エラーメッセージが期待と異なります: 期待=%s, 実際=%s", tt.wantErrMsg, err.Error())
+				}
+			} else {
+				if err != nil {
+					t.Errorf("予期しないエラーが発生しました: %v", err)
+					return
+				}
+				if len(cards) != tt.wantCount {
+					t.Errorf("カード数が期待と異なります: 期待=%d, 実際=%d", tt.wantCount, len(cards))
+				}
+				if tt.validate != nil {
+					tt.validate(t, cards)
+				}
+			}
+		})
+	}
+}
